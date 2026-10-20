@@ -211,16 +211,16 @@ export function Hero() {
       {/* 5. Ти — над написами й фактурою (вирізана фігура з того ж фото) */}
       <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
 
-      {/* 6. Навігація по кутах */}
-      <header className="text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 top-30 flex items-start justify-between px-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:px-[16px] max-md:text-[12px] max-md:tracking-[-0.02em]">
-        <a data-reveal="nav" href="#top" className="letter-swap-trigger opacity-0">
+      {/* 6. Навігація по кутах. Самі блоки меню «прозорі» для миші (інакше вони накривали б OF і верх DESIGNER), клікаються лише посилання */}
+      <header className="pointer-events-none text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 top-30 flex items-start justify-between px-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:px-[16px] max-md:text-[12px] max-md:tracking-[-0.02em]">
+        <a data-reveal="nav" href="#top" className="letter-swap-trigger pointer-events-auto opacity-0">
           <LetterSwap text={hero.signature} />
         </a>
         <nav aria-label="Головне меню">
           <ul className="flex flex-col items-end gap-10 max-md:gap-[8px]">
             {navigation.map((item) => (
               <li key={item.id} data-reveal="nav" className="opacity-0 focus-within:opacity-100">
-                <a href={`#${item.id}`} className="letter-swap-trigger">
+                <a href={`#${item.id}`} className="letter-swap-trigger pointer-events-auto">
                   <LetterSwap text={item.label} />
                 </a>
               </li>
@@ -232,12 +232,12 @@ export function Hero() {
       {/* Дзеркальне меню внизу — декоративний повтор для миші, скрінрідер його пропускає */}
       <div
         aria-hidden="true"
-        className="text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 bottom-30 flex items-end justify-between px-30 leading-[normal] text-ink uppercase max-md:hidden"
+        className="pointer-events-none text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 bottom-30 flex items-end justify-between px-30 leading-[normal] text-ink uppercase max-md:hidden"
       >
         <ul className="flex flex-col items-start gap-10">
           {navigation.map((item) => (
             <li key={item.id} data-reveal="nav" className="opacity-0">
-              <a href={`#${item.id}`} tabIndex={-1} className="letter-swap-trigger">
+              <a href={`#${item.id}`} tabIndex={-1} className="letter-swap-trigger pointer-events-auto">
                 <LetterSwap text={item.label} />
               </a>
             </li>
