@@ -10,6 +10,7 @@
  *  - друк по літерах (play) — рамка виділення біжить по літері, що «друкується»;
  *  - наведення: літера під курсором стає пунктирним контуром, довкола рамка з підписом і «іскрами»;
  *  - літеру можна потягнути — вона пружно повертається; клік — хвиля підстрибування.
+ *  - полотно велике (на всю сцену) і не ловить мишу саме — слухаємо вікно, тож літеру можна витягнути куди завгодно.
  * Кольори передаються як CSS-змінні токенів (fillVar, dashVar, accentVar, outlineVar).
  */
 
@@ -57,6 +58,14 @@ const SPECKS = 15;
 const DASH = [4, 2];
 const STROKE = 1.5;
 const LABEL_FONT = "10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+// Полотна не ловлять мишу самі (pointer-events: none), тож курсор-руку ставимо на весь документ.
+// Кілька полотен (DESIGNER, OF VISUAL SENSES) — тому спільний реєстр.
+const cursorOwners = new Map<symbol, string>();
+const applyCursor = () => {
+  const values = [...cursorOwners.values()];
+  document.documentElement.style.cursor = values.includes("grabbing") ? "grabbing" : values.includes("grab") ? "grab" : "";
+};
 
 const approach = (cur: number, target: number, dt: number, s: number) => cur + (target - cur) * (1 - Math.exp(-dt / s));
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -151,6 +160,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     let pulse = 0;
     let dragging = -1;
     let cursor = "";
+    const cursorId = Symbol("glyph-tech");
     let intro: "hidden" | "typing" | "done" = "hidden";
     let introClock = 0;
     const kicks: { index: number; at: number; velocity: number }[] = [];
@@ -439,7 +449,9 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       const nextCursor = dragging >= 0 ? "grabbing" : hovering ? "grab" : "";
       if (nextCursor !== cursor) {
         cursor = nextCursor;
-        container.style.cursor = nextCursor;
+        if (nextCursor) cursorOwners.set(cursorId, nextCursor);
+        else cursorOwners.delete(cursorId);
+        applyCursor();
       }
 
       // малювання
@@ -512,15 +524,21 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       wake();
     };
 
+    // Слухаємо мишу на всьому вікні: полотно велике й «прозоре» для кліків,
+    // щоб літеру можна було витягнути далеко за межі напису і нічого під полотном не перекривалось.
     const locate = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       pointer.x = area.x + (e.clientX - rect.left) / k;
       pointer.y = area.y + (e.clientY - rect.top) / k;
     };
+    // курсор над посиланням/кнопкою — це не наша літера
+    const overControl = (e: PointerEvent) =>
+      e.target instanceof Element && !!e.target.closest("a[href], button, input, select, textarea, [role='button']");
     const onMove = (e: PointerEvent) => {
       locate(e);
-      pointer.inside = true;
-      wake();
+      const was = pointer.inside;
+      pointer.inside = dragging >= 0 || (!overControl(e) && glyphAt(pointer.x, pointer.y) >= 0);
+      if (pointer.inside || was) wake();
     };
     const onLeave = () => {
       if (dragging >= 0) return;
@@ -528,29 +546,30 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       wake();
     };
     const onDown = (e: PointerEvent) => {
+      if (overControl(e)) return;
       locate(e);
-      pointer.inside = true;
       const primary = e.pointerType !== "mouse" || e.button === 0;
       const index = intro !== "done" || !primary ? -1 : glyphAt(pointer.x, pointer.y);
+      if (index < 0) return;
+      pointer.inside = true;
       press.x = e.clientX;
       press.y = e.clientY;
       press.time = performance.now();
       press.index = index;
-      if (index >= 0) {
+      // тягнути можна мишею й пером; на сенсорному екрані — лише «підстрибування» від дотику, щоб не заважати скролу
+      if (e.pointerType !== "touch") {
+        e.preventDefault(); // без виділення тексту під час перетягування
         dragging = index;
         grab.x = pointer.x - glyphs[index].offset.x;
         grab.y = pointer.y - glyphs[index].offset.y;
-        container.setPointerCapture?.(e.pointerId);
       }
       wake();
     };
     const onUp = (e: PointerEvent) => {
       if (dragging >= 0) {
         dragging = -1;
-        container.releasePointerCapture?.(e.pointerId);
-        const rect = container.getBoundingClientRect();
-        pointer.inside =
-          e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+        locate(e);
+        pointer.inside = glyphAt(pointer.x, pointer.y) >= 0;
       }
       if (
         e.type === "pointerup" &&
@@ -565,12 +584,11 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       wake();
     };
 
-    container.addEventListener("pointermove", onMove, { passive: true });
-    container.addEventListener("pointerenter", onMove, { passive: true });
-    container.addEventListener("pointerdown", onDown, { passive: true });
-    container.addEventListener("pointerup", onUp, { passive: true });
-    container.addEventListener("pointercancel", onUp, { passive: true });
-    container.addEventListener("pointerleave", onLeave, { passive: true });
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp, { passive: true });
+    window.addEventListener("pointercancel", onUp, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onLeave, { passive: true });
     const ro = new ResizeObserver(resize);
     ro.observe(container);
     const io = new IntersectionObserver(([entry]) => {
@@ -588,13 +606,13 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
-      container.style.cursor = "";
-      container.removeEventListener("pointermove", onMove);
-      container.removeEventListener("pointerenter", onMove);
-      container.removeEventListener("pointerdown", onDown);
-      container.removeEventListener("pointerup", onUp);
-      container.removeEventListener("pointercancel", onUp);
-      container.removeEventListener("pointerleave", onLeave);
+      cursorOwners.delete(cursorId);
+      applyCursor();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
     };
   }, [introDuration, glyphData, area, fontSize, fillVar, dashVar, accentVar, outlineVar, outlineWidth, accentShadow]);
 

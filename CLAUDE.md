@@ -31,7 +31,7 @@
 - Hero (`src/components/sections/hero/`), шари знизу вгору: фото → відео-вступ → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапкова фактура → вирізана фігура (Катя поверх крапок) → меню.
 - Пікселі за курсором — на весь сайт: `components/effects/CursorPixels.tsx` (PixelBlast): над порожнім місцем — велика пляма, над активними елементами (посилання, кнопки, курсор-рука) — квадратик ≈20×20 px. Підключено в `layout.tsx`.
 - Анімація (`hero.motion.ts`): відео → фото → ім'я проявляється маскою по літерах зліва направо → DESIGNER друкується → OF VISUAL SENSES друкується → тарган і меню.
-- Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генеруються маски «вирізу» імені `public/hero/designer-knockout.svg` і `senses-knockout.svg`.
+- Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генерується маска «вирізу» імені `public/hero/name-knockout.svg`. Полотна ефекту наведення — на всю сцену (`letteringArea`) і не ловлять мишу самі: GlyphTech слухає вікно, тож літери можна витягувати далеко.
 - DESIGNER і OF VISUAL SENSES з ефектом наведення — `GlyphTech.tsx` (за мотивами TechText з React Bits), кольори через токени. Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).
 - Графіка hero лежить у `src/assets/hero`, відео — у `public/hero`.
 

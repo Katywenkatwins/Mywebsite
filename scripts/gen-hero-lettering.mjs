@@ -6,7 +6,7 @@
  *
  * Результат:
  *   src/components/sections/hero/lettering.ts   — контури DESIGNER, OF VISUAL SENSES, Kateryna Smiian
- *   public/hero/designer-knockout.svg, senses-knockout.svg — маски «вирізу» імені з написів
+ *   public/hero/name-knockout.svg                — маска «вирізу» імені з DESIGNER і OF VISUAL SENSES
  *
  * Числа нижче — з Figma (вузли 12288:22413, 12289:22422, 12288:22415, група 12288:22417 на 14,96).
  * Дрібні зсуви (dy) звірені з absoluteRenderBounds у Figma.
@@ -57,25 +57,14 @@ const lh = 81;
 const firstBaseline = G.y + (lh - 1.2 * sSize) / 2 + 0.967 * sSize + 0.47;
 const senses = ["OF", "VISUAL", "SENSES"].map((t, i) => line(cool, t, G.x + 1435, firstBaseline + i * lh, sSize, -0.02));
 
-const bounds = (gs) =>
-  gs.reduce((a, g) => [Math.min(a[0], g.box[0]), Math.min(a[1], g.box[1]), Math.max(a[2], g.box[2]), Math.max(a[3], g.box[3])], [Infinity, Infinity, -Infinity, -Infinity]);
+// Полотна ефекту наведення — на всю сцену з запасом, щоб літеру можна було витягнути далеко
+const area = { x: -120, y: -120, w: 2160, h: 1320 };
 
-// Полотна з запасом під рамку виділення, підписи й «іскри» ефекту наведення
-const pad = 48;
-const canvasBox = (gs, padLeft = pad) => {
-  const b = bounds(gs);
-  return { x: r(b[0] - padLeft), y: r(b[1] - pad), w: r(b[2] - b[0] + padLeft + pad), h: r(b[3] - b[1] + pad * 2) };
-};
-const designerBox = canvasBox(designer);
-// зліва запас менший, щоб полотно не накривало R від DESIGNER (інакше R не ловив би курсор)
-const sensesBox = canvasBox(senses.flat(), 18);
-
-// Маска «вирізу» імені (у Figma — ім'я з обведенням 5 px назовні, відняте від напису).
+// Маска «вирізу» імені (у Figma — ім'я з обведенням 5 px назовні, відняте від написів).
 // Працює за прозорістю: усе непрозоре, крім імені з обведенням (там «дірка»).
-const knockout = (kb) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${kb.x} ${kb.y} ${kb.w} ${kb.h}" preserveAspectRatio="none"><defs><mask id="k" maskUnits="userSpaceOnUse" x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}"><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round">${name.map((g) => `<path d="${g.d}"/>`).join("")}</g></mask></defs><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#000" mask="url(#k)"/></svg>`;
-fs.writeFileSync(path.join(root, "public/hero/designer-knockout.svg"), knockout(designerBox));
-fs.writeFileSync(path.join(root, "public/hero/senses-knockout.svg"), knockout(sensesBox));
+const kb = area;
+const knockout = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${kb.x} ${kb.y} ${kb.w} ${kb.h}" preserveAspectRatio="none"><defs><mask id="k" maskUnits="userSpaceOnUse" x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}"><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round">${name.map((g) => `<path d="${g.d}"/>`).join("")}</g></mask></defs><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#000" mask="url(#k)"/></svg>`;
+fs.writeFileSync(path.join(root, "public/hero/name-knockout.svg"), knockout);
 
 const ts = `// Згенеровано scripts/gen-hero-lettering.mjs — не редагуй вручну.
 // Координати — пікселі макета 1920×1080.
@@ -92,8 +81,8 @@ export type Glyph = {
 
 export const designerGlyphs: Glyph[] = ${JSON.stringify(designer)};
 
-/** Полотно DESIGNER (із запасом під ефект наведення) */
-export const designerBox = ${JSON.stringify(designerBox)};
+/** Полотно написів з ефектом наведення (вся сцена з запасом) */
+export const letteringArea = ${JSON.stringify(area)};
 
 export const nameGlyphs: Glyph[] = ${JSON.stringify(name)};
 
@@ -102,11 +91,8 @@ export const sensesLines: Glyph[][] = ${JSON.stringify(senses)};
 /** OF VISUAL SENSES одним списком (для полотна з ефектом наведення) */
 export const sensesGlyphs: Glyph[] = sensesLines.flat();
 
-/** Полотно OF VISUAL SENSES (із запасом під ефект наведення) */
-export const sensesBox = ${JSON.stringify(sensesBox)};
-
 /** Розмір і висота великих літер OF VISUAL SENSES — для курсора друку */
 export const sensesType = { size: ${sSize}, capHeight: ${r(0.664 * sSize)}, lineHeight: ${lh}, baselines: ${JSON.stringify([0, 1, 2].map((i) => r(firstBaseline + i * lh)))} };
 `;
 fs.writeFileSync(path.join(root, "src/components/sections/hero/lettering.ts"), ts);
-console.log("designer", designer.length, "name", name.length, "senses", senses.map((l) => l.length).join("/"), "box", designerBox);
+console.log("designer", designer.length, "name", name.length, "senses", senses.map((l) => l.length).join("/"));

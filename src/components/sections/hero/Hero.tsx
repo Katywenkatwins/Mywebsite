@@ -8,7 +8,7 @@ import { hero } from "@/content/hero";
 import { navigation } from "@/content/site";
 import { LetterSwap } from "@/components/ui/LetterSwap";
 import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
-import { designerBox, designerGlyphs, nameGlyphs, sensesBox, sensesGlyphs } from "./lettering";
+import { designerGlyphs, letteringArea, nameGlyphs, sensesGlyphs } from "./lettering";
 import { playHeroReveal, SENSES_TYPE_SECONDS } from "./hero.motion";
 
 import photo from "@/assets/hero/photo.png";
@@ -140,21 +140,21 @@ export function Hero() {
         <GlyphTech
           ref={designerRef}
           glyphs={designerGlyphs}
-          box={designerBox}
+          box={letteringArea}
           fontSize={346.887}
           fillVar="--color-pink"
           dashVar="--color-pink"
           accentVar="--color-paper"
           accentShadow
-          className="pointer-events-auto absolute touch-pan-y [mask-image:url(/hero/designer-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
-          style={box(designerBox.x, designerBox.y, designerBox.w, designerBox.h)}
+          className="absolute [mask-image:url(/hero/name-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
+          style={box(letteringArea.x, letteringArea.y, letteringArea.w, letteringArea.h)}
         />
 
         {/* OF VISUAL SENSES — той самий ефект: рожеві рамки з підписами */}
         <GlyphTech
           ref={sensesRef}
           glyphs={sensesGlyphs}
-          box={sensesBox}
+          box={letteringArea}
           fontSize={90}
           fillVar="--color-lemon"
           dashVar="--color-pink"
@@ -162,8 +162,8 @@ export function Hero() {
           outlineVar="--color-ink-warm"
           outlineWidth={1}
           introDuration={SENSES_TYPE_SECONDS}
-          className="pointer-events-auto absolute touch-pan-y [mask-image:url(/hero/senses-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
-          style={box(sensesBox.x, sensesBox.y, sensesBox.w, sensesBox.h)}
+          className="absolute [mask-image:url(/hero/name-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
+          style={box(letteringArea.x, letteringArea.y, letteringArea.w, letteringArea.h)}
         />
 
         <svg viewBox="0 0 1920 1080" className="absolute inset-0 size-full overflow-visible">
