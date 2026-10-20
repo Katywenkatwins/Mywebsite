@@ -40,6 +40,9 @@ const fullBleed = "pointer-events-none absolute inset-0 size-full object-cover s
 
 // Межі області, де ім'я «вирізає» OF VISUAL SENSES
 const knockPad = 20;
+// Маска появи імені: запас довкола літери і ширина м'якого краю (пікселі макета)
+const nameWipePad = 4;
+const nameWipeFeather = 60;
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -194,10 +197,35 @@ export function Hero() {
             className="fill-ink-warm opacity-0"
           />
 
-          {/* Kateryna Smiian — контури літер для «рукопису» */}
-          <g data-reveal="name" className="fill-ink-warm stroke-ink-warm opacity-0" strokeWidth={1.5}>
+          {/* Kateryna Smiian — кожна літера проявляється маскою зліва направо (м'який край) */}
+          <defs>
+            <linearGradient id="hero-name-wipe">
+              <stop offset="0.7" stopColor="white" />
+              <stop offset="1" stopColor="white" stopOpacity={0} />
+            </linearGradient>
+            {nameGlyphs.map((g, i) => {
+              const [x1, y1, x2, y2] = g.box;
+              const x0 = x1 - nameWipePad;
+              const w = x2 - x1 + nameWipePad * 2 + nameWipeFeather;
+              return (
+                <mask key={i} id={`hero-name-${i}`} maskUnits="userSpaceOnUse" x={x0} y={y1 - nameWipePad} width={w} height={y2 - y1 + nameWipePad * 2}>
+                  <rect
+                    data-name-wipe
+                    data-x0={x0}
+                    x={x0}
+                    y={y1 - nameWipePad}
+                    width={w}
+                    height={y2 - y1 + nameWipePad * 2}
+                    fill="url(#hero-name-wipe)"
+                    transform={`matrix(0 0 0 1 ${x0} 0)`}
+                  />
+                </mask>
+              );
+            })}
+          </defs>
+          <g data-reveal="name" className="fill-ink-warm opacity-0">
             {nameGlyphs.map((g, i) => (
-              <path key={i} d={g.d} data-name-glyph fillOpacity={0} />
+              <path key={i} d={g.d} mask={`url(#hero-name-${i})`} />
             ))}
           </g>
         </svg>
@@ -271,7 +299,7 @@ export function Hero() {
       </div>
 
       <noscript>
-        <style>{`[data-reveal]{opacity:1!important}[data-name-glyph]{fill-opacity:1}[data-hero-video]{display:none}`}</style>
+        <style>{`[data-reveal]{opacity:1!important}[data-name-wipe]{transform:none}[data-hero-video]{display:none}`}</style>
       </noscript>
     </section>
   );

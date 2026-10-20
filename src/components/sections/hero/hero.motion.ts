@@ -1,15 +1,12 @@
 import { gsap } from "gsap";
-import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { DESIGNER_TYPE_SECONDS, type DesignerTechHandle } from "./DesignerTech";
 import { sensesLines, sensesType } from "./lettering";
-
-gsap.registerPlugin(DrawSVGPlugin);
 
 /*
  * Рух hero. Верстка — Hero.tsx, тут тільки анімація.
  * Сценарій:
  *  1. піксельне відео грає один раз → проявляється чисте фото;
- *  2. «Kateryna Smiian» пишеться: контур кожної літери промальовується (trim path), потім заливка;
+ *  2. «Kateryna Smiian» проявляється по літерах маскою зліва направо з м'яким краєм;
  *  3. DESIGNER друкується по літерах (рамка виділення біжить по літері);
  *  4. одразу за ним друкується OF VISUAL SENSES з курсором;
  *  5. тарган і меню.
@@ -26,14 +23,14 @@ type Options = {
 export function playHeroReveal(root: HTMLElement, { instant, designer, onStage }: Options) {
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
-  const nameGlyphs = q("[data-name-glyph]");
+  const nameWipes = q("[data-name-wipe]");
   const sensesChars = q("[data-senses-char]");
   const caret = q("[data-senses-caret]");
 
   if (instant) {
     gsap.set(video, { autoAlpha: 0 });
     gsap.set(q("[data-reveal]"), { opacity: 1 });
-    gsap.set(nameGlyphs, { fillOpacity: 1, strokeOpacity: 0 });
+    gsap.set(nameWipes, { attr: { transform: "matrix(1 0 0 1 0 0)" } });
     designer?.showAll();
     onStage?.();
     return null;
@@ -46,18 +43,26 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, onStage }
     .set(q('[data-reveal="cutout"]'), { opacity: 1 })
     .call(() => onStage?.());
 
-  // 2. ім'я пишеться
+  // 2. ім'я: кожна літера відкривається маскою зліва направо, наступна стартує, поки попередня ще йде
   const write = tl.duration();
   tl.set(q('[data-reveal="name"]'), { opacity: 1 }, write);
-  const per = 0.6;
-  const stagger = 0.15;
-  nameGlyphs.forEach((glyph, i) => {
-    const at = write + i * stagger;
-    tl.fromTo(glyph, { drawSVG: "0%" }, { drawSVG: "100%", duration: per, ease: "power1.inOut" }, at);
-    tl.to(glyph, { fillOpacity: 1, duration: 0.45, ease: "power1.out" }, at + per * 0.65);
+  const per = 0.55;
+  const stagger = 0.13;
+  nameWipes.forEach((rect, i) => {
+    const x0 = Number(rect.getAttribute("data-x0"));
+    const scale = { v: 0 };
+    tl.to(
+      scale,
+      {
+        v: 1,
+        duration: per,
+        ease: "power2.inOut",
+        onUpdate: () => rect.setAttribute("transform", `matrix(${scale.v} 0 0 1 ${x0 * (1 - scale.v)} 0)`),
+      },
+      write + i * stagger,
+    );
   });
-  const nameDone = write + (nameGlyphs.length - 1) * stagger + per;
-  tl.to(nameGlyphs, { strokeOpacity: 0, duration: 0.4 }, nameDone);
+  const nameDone = write + (nameWipes.length - 1) * stagger + per;
 
   // 3. DESIGNER друкується
   tl.call(() => void designer?.play(), undefined, nameDone - 0.2);

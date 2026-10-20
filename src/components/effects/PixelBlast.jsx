@@ -942,7 +942,8 @@ const PixelBlast = ({
       gl.deleteVertexArray(vao);
       gl.deleteProgram(cellShader.program);
       gl.deleteProgram(mainShader.program);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      // Не «вбиваємо» WebGL-контекст: у dev-режимі React монтує компонент двічі,
+      // і на тому самому canvas другий раз отримав би мертвий контекст (біла плівка)
     };
   }, []);
 
