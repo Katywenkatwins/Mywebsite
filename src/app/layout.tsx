@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { site } from "@/content/site";
+import { CursorPixels } from "@/components/effects/CursorPixels";
 import "./globals.css";
 
 const dmMono = localFont({
@@ -32,7 +33,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: pageSizeScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <CursorPixels />
+      </body>
     </html>
   );
 }

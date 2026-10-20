@@ -28,7 +28,8 @@
 
 - Масштаб: `globals.css` задає `--u` і `--s`; `layout.tsx` пише в `--page-w` ширину сторінки без скролбара. У Tailwind `--spacing: var(--u)`, тож `w-640` = 640 пікселів макета; розмір тексту — `text-u-20`.
 - Понад 2560 px масштаб зупиняється. Нижче 768 px — тимчасова мобільна логіка (макета ще немає).
-- Hero (`src/components/sections/hero/`), шари знизу вгору: фото → відео-вступ → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапкова фактура → пікселі від курсора (PixelBlast) → вирізана фігура (Катя завжди поверх крапок і пікселів) → меню.
+- Hero (`src/components/sections/hero/`), шари знизу вгору: фото → відео-вступ → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапкова фактура → вирізана фігура (Катя поверх крапок) → меню.
+- Пікселі за курсором — на весь сайт: `components/effects/CursorPixels.tsx` (PixelBlast, слід ≈20×20 px), підключено в `layout.tsx`.
 - Анімація (`hero.motion.ts`): відео → фото → ім'я проявляється маскою по літерах зліва направо → DESIGNER друкується → OF VISUAL SENSES друкується → тарган і меню.
 - Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генеруються маски «вирізу» імені `public/hero/designer-knockout.svg` і `senses-knockout.svg`.
 - DESIGNER і OF VISUAL SENSES з ефектом наведення — `GlyphTech.tsx` (за мотивами TechText з React Bits), кольори через токени. Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).

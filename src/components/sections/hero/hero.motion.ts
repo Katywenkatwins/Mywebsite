@@ -19,11 +19,9 @@ type Options = {
   instant: boolean;
   designer: GlyphTechHandle | null;
   senses: GlyphTechHandle | null;
-  /** коли відео зникло і фото вже чисте (для фону PixelBlast) */
-  onStage?: () => void;
 };
 
-export function playHeroReveal(root: HTMLElement, { instant, designer, senses, onStage }: Options) {
+export function playHeroReveal(root: HTMLElement, { instant, designer, senses }: Options) {
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
   const nameWipes = q("[data-name-wipe]");
@@ -34,7 +32,6 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, o
     gsap.set(nameWipes, { attr: { transform: "matrix(1 0 0 1 0 0)" } });
     designer?.showAll();
     senses?.showAll();
-    onStage?.();
     return null;
   }
 
@@ -42,8 +39,7 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, o
 
   // 1. відео → фото
   tl.to(video, { autoAlpha: 0, duration: 0.9, ease: "power2.inOut" })
-    .set(q('[data-reveal="cutout"]'), { opacity: 1 })
-    .call(() => onStage?.());
+    .set(q('[data-reveal="cutout"]'), { opacity: 1 });
 
   // 2. ім'я: кожна літера відкривається маскою зліва направо, наступна стартує, поки попередня ще йде
   const write = tl.duration();

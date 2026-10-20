@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
@@ -17,15 +16,13 @@ import photoCutout from "@/assets/hero/photo-cutout.png";
 import roach from "@/assets/hero/roach.png";
 import stipple from "@/assets/hero/stipple.png";
 
-// WebGL-фон вантажимо лише в браузері і лише коли він потрібен
-const PixelBlast = dynamic(() => import("@/components/effects/PixelBlast"), { ssr: false });
 
 gsap.registerPlugin(useGSAP);
 
 /*
  * Figma: «Look & Feel 8» (node 6373:2521), 1920×1080.
  * Усі числа — пікселі макета. Усередині hero одиниця --u = --s, тобто сцена вписується в екран цілком.
- * Шари знизу вгору: фото → відео → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапки → пікселі → ти (вирізка)
+ * Шари знизу вгору: фото → відео → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапки → ти (вирізка)
  *                  → меню.
  */
 const u = (n: number) => `calc(${n} * var(--u))`;
@@ -47,8 +44,6 @@ export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const designerRef = useRef<GlyphTechHandle>(null);
   const sensesRef = useRef<GlyphTechHandle>(null);
-  const [pixelsOn, setPixelsOn] = useState(false);
-  const [pixelColor, setPixelColor] = useState("");
 
   useGSAP(
     () => {
@@ -56,16 +51,11 @@ export function Hero() {
       const video = videoRef.current;
       if (!el || !video) return;
 
-      const onStage = () => {
-        setPixelColor(getComputedStyle(el).getPropertyValue("--color-pink").trim());
-        setPixelsOn(true);
-      };
-
       let revealed = false;
       const reveal = (instant: boolean) => {
         if (revealed) return;
         revealed = true;
-        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current, onStage });
+        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current });
       };
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -218,30 +208,10 @@ export function Hero() {
       {/* 4. Крапкова фактура — під тобою, щоб крапки не лягали на тебе */}
       <Image src={stipple} alt="" sizes="100vw" className={fullBleed} />
 
-      {/* 5. Пікселі, що тягнуться за курсором — теж позаду тебе */}
-      {pixelsOn && pixelColor && (
-        <div className="pointer-events-none absolute inset-0 opacity-60 motion-reduce:hidden">
-          <PixelBlast
-            color={pixelColor}
-            pixelSize={4}
-            patternScale={2.5}
-            patternDensity={-1}
-            intro={false}
-            speed={0.35}
-            edgeFade={0.15}
-            glow={0.3}
-            twinkle={0.2}
-            hoverEffect="reveal"
-            hoverRadius={150}
-            rippleIntensityScale={1.2}
-          />
-        </div>
-      )}
-
-      {/* 6. Ти — над написами, фактурою й пікселями (вирізана фігура з того ж фото) */}
+      {/* 5. Ти — над написами й фактурою (вирізана фігура з того ж фото) */}
       <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
 
-      {/* 7. Навігація по кутах */}
+      {/* 6. Навігація по кутах */}
       <header className="text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 top-30 flex items-start justify-between px-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:px-[16px] max-md:text-[12px] max-md:tracking-[-0.02em]">
         <a data-reveal="nav" href="#top" className="letter-swap-trigger opacity-0">
           <LetterSwap text={hero.signature} />
