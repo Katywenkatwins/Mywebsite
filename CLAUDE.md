@@ -28,7 +28,10 @@
 
 - Масштаб: `globals.css` задає `--u` і `--s`; `layout.tsx` пише в `--page-w` ширину сторінки без скролбара. У Tailwind `--spacing: var(--u)`, тож `w-640` = 640 пікселів макета; розмір тексту — `text-u-20`.
 - Понад 2560 px масштаб зупиняється. Нижче 768 px — тимчасова мобільна логіка (макета ще немає).
-- Hero (`src/components/sections/Hero.tsx`), шари знизу вгору: фото → відео-вступ → написи → вирізана фігура → крапкова фактура → меню. Відео грає один раз, після нього `hero.motion.ts` проявляє написи.
+- Hero (`src/components/sections/hero/`), шари знизу вгору: фото → відео-вступ → DESIGNER → ім'я та OF VISUAL SENSES → тарган → вирізана фігура → крапкова фактура → пікселі від курсора (PixelBlast) → меню.
+- Анімація (`hero.motion.ts`): відео → фото → ім'я пишеться (trim path) → DESIGNER друкується → OF VISUAL SENSES друкується з курсором → тарган і меню.
+- Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генерується маска «вирізу» імені `public/hero/designer-knockout.svg`.
+- DESIGNER з ефектом наведення — `DesignerTech.tsx` (за мотивами TechText з React Bits). Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).
 - Графіка hero лежить у `src/assets/hero`, відео — у `public/hero`.
 
 ## Запуск

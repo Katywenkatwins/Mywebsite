@@ -1,0 +1,47 @@
+.letter-swap {
+  display: inline-block;
+}
+
+.letter-swap-row {
+  display: inline-flex;
+  perspective: 600px;
+}
+
+.letter-swap-cube {
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50% -0.5lh;
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: calc(var(--i) * 28ms);
+}
+
+.letter-swap-face {
+  display: block;
+  backface-visibility: hidden;
+}
+
+.letter-swap-back {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50% -0.5lh;
+  transform: rotateX(-90deg);
+}
+
+.letter-swap-trigger:hover .letter-swap-cube,
+.letter-swap-trigger:focus-visible .letter-swap-cube {
+  transform: rotateX(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-swap-cube {
+    transition: none;
+  }
+  .letter-swap-trigger:hover .letter-swap-cube,
+  .letter-swap-trigger:focus-visible .letter-swap-cube {
+    transform: none;
+  }
+  .letter-swap-trigger:hover {
+    opacity: 0.6;
+  }
+}

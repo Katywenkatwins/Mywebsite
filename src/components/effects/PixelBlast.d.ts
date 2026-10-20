@@ -1,0 +1,40 @@
+import type { CSSProperties, FC } from "react";
+
+export type PixelBlastProps = {
+  variant?: "square" | "circle" | "triangle" | "diamond" | "cross" | "ring";
+  pixelSize?: number;
+  color?: string;
+  accentColor?: string;
+  className?: string;
+  style?: CSSProperties;
+  patternScale?: number;
+  patternDensity?: number;
+  pixelSizeJitter?: number;
+  enableRipples?: boolean;
+  rippleIntensityScale?: number;
+  rippleThickness?: number;
+  rippleSpeed?: number;
+  autoPauseOffscreen?: boolean;
+  speed?: number;
+  transparent?: boolean;
+  edgeFade?: number;
+  noiseAmount?: number;
+  softness?: number;
+  smoothing?: number;
+  glow?: number;
+  twinkle?: number;
+  drift?: number;
+  driftAngle?: number;
+  hoverEffect?: "none" | "grow" | "reveal";
+  hoverRadius?: number;
+  autoRipple?: number;
+  tiltX?: number;
+  tiltY?: number;
+  intro?: boolean;
+  variation?: number;
+  lightMode?: boolean;
+  dpr?: number;
+};
+
+declare const PixelBlast: FC<PixelBlastProps>;
+export default PixelBlast;
