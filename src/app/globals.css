@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Масштаб «піксель макета».
+ * Макети Figma — 1920×1080. 1 піксель макета = --u.
+ * --page-w / --page-h пише скрипт у layout.tsx (ширина без скролбара, висота вікна).
+ * --s — для сцен на весь екран: менше з двох, щоб уся сцена вписалась.
+ */
+:root {
+  --u: calc(var(--page-w, 100vw) / 1920);
+  --s: min(var(--u), calc(var(--page-h, 100svh) / 1080));
+}
+
+/* понад 2560 масштаб зупиняється (пропозиція з плану, обговорюється) */
+@media (min-width: 2561px) {
+  :root {
+    --u: calc(2560px / 1920);
+  }
+}
+
+@theme {
+  /* Tailwind: w-640 = 640 пікселів макета */
+  --spacing: var(--u);
+
+  /* Кольори бренду */
+  --color-ink: #000000;
+  --color-ink-warm: #322e2a; /* рукописне ім'я в hero */
+  --color-pink: #f68fe3; /* DESIGNER */
+  --color-lemon: #fefba1; /* OF VISUAL SENSES */
+  --color-studio: #9f9f9f; /* тло під фото hero */
+  --color-paper: #ffffff;
+
+  /* Шрифти: змінні задає next/font у layout.tsx */
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  /* Astrum Cyrillic: файл шрифту ще не додано, поки запасний */
+  --font-script: var(--font-astrum, "Astrum Cyrillic"), "Snell Roundhand", cursive;
+}
+
+/* Розмір тексту в пікселях макета: text-u-20 */
+@utility text-u-* {
+  font-size: calc(var(--u) * --value(number));
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

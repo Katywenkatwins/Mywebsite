@@ -1,0 +1,38 @@
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
+import { site } from "@/content/site";
+import "./globals.css";
+
+const dmMono = localFont({
+  src: "../fonts/DMMono-Regular.woff2",
+  weight: "400",
+  style: "normal",
+  variable: "--font-dm-mono",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: site.title,
+  description: site.description,
+};
+
+export const viewport: Viewport = {
+  themeColor: "#9f9f9f",
+};
+
+/*
+ * Пише в CSS точну ширину сторінки без скролбара і висоту вікна,
+ * щоб 1920 пікселів макета = рівно ширина вікна. Виконується до першого малювання.
+ */
+const pageSizeScript = `(function(){var r=document.documentElement;function s(){r.style.setProperty('--page-w',r.clientWidth+'px');r.style.setProperty('--page-h',window.innerHeight+'px')}s();addEventListener('resize',s);if(window.ResizeObserver){new ResizeObserver(s).observe(r)}})();`;
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="uk" className={dmMono.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: pageSizeScript }} />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
