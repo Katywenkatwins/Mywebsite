@@ -1,7 +1,8 @@
 "use client";
 
 /*
- * DESIGNER з ефектом наведення в стилі TechText (React Bits), переписаний під наш макет:
+ * Напис з ефектом наведення в стилі TechText (React Bits), переписаний під наш макет
+ * (DESIGNER і OF VISUAL SENSES):
  * літери — точні контури з Figma (lettering.ts), а не текст шрифтом,
  * тож позиція збігається з макетом до пікселя і шрифт не треба вантажити.
  *
@@ -9,20 +10,37 @@
  *  - друк по літерах (play) — рамка виділення біжить по літері, що «друкується»;
  *  - наведення: літера під курсором стає пунктирним контуром, довкола рамка з підписом і «іскрами»;
  *  - літеру можна потягнути — вона пружно повертається; клік — хвиля підстрибування.
- * Кольори: заливка — рожевий, рамка/підписи — білий (токени --color-pink / --color-paper).
+ * Кольори передаються як CSS-змінні токенів (fillVar, dashVar, accentVar, outlineVar).
  */
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { designerBox, designerGlyphs } from "./lettering";
+import type { Glyph } from "./lettering";
 
-export type DesignerTechHandle = {
+export type GlyphTechHandle = {
   /** Почати друк. Повертає тривалість у секундах. */
   play: () => number;
   /** Показати одразу без анімації */
   showAll: () => void;
 };
 
+type Box = { x: number; y: number; w: number; h: number };
+
 type Props = {
+  /** літери (контури з lettering.ts) */
+  glyphs: Glyph[];
+  /** полотно в пікселях макета */
+  box: Box;
+  /** розмір шрифту в макеті — для сили «підстрибування» */
+  fontSize: number;
+  /** CSS-змінні кольорів: заливка, пунктир наведення, рамка/підписи, обведення літер (необов'язкове) */
+  fillVar: string;
+  dashVar: string;
+  accentVar: string;
+  outlineVar?: string;
+  /** обведення літер, пікселі макета */
+  outlineWidth?: number;
+  /** рожева тінь під білими рамками, щоб читались на світлому тлі */
+  accentShadow?: boolean;
   className?: string;
   style?: React.CSSProperties;
   /** тривалість друку, с */
@@ -39,7 +57,6 @@ const SPECKS = 15;
 const DASH = [4, 2];
 const STROKE = 1.5;
 const LABEL_FONT = "10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-const FONT_SIZE = 346.887; // розмір DESIGNER у макеті — для сили «підстрибування»
 
 const approach = (cur: number, target: number, dt: number, s: number) => cur + (target - cur) * (1 - Math.exp(-dt / s));
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -69,15 +86,28 @@ type GlyphState = {
   shown: number;
 };
 
-export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function DesignerTech(
-  { className, style, introDuration = DESIGNER_TYPE_SECONDS },
+export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
+  {
+    glyphs: glyphData,
+    box: area,
+    fontSize,
+    fillVar,
+    dashVar,
+    accentVar,
+    outlineVar,
+    outlineWidth = 1,
+    accentShadow = false,
+    className,
+    style,
+    introDuration = DESIGNER_TYPE_SECONDS,
+  },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Команда могла прийти раніше, ніж полотно готове (useGSAP батька — це layout-ефект) — запам'ятовуємо її
   const pending = useRef<"play" | "show" | null>(null);
-  const api = useRef<DesignerTechHandle>({
+  const api = useRef<GlyphTechHandle>({
     play: () => {
       pending.current = "play";
       return introDuration;
@@ -101,7 +131,7 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
     if (!container || !canvas || !ctx || !sctx) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const glyphs: GlyphState[] = designerGlyphs.map((g) => ({
+    const glyphs: GlyphState[] = glyphData.map((g) => ({
       char: g.char,
       path: new Path2D(g.d),
       box: g.box,
@@ -132,36 +162,39 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
     const colors = () => {
       const cs = getComputedStyle(container);
       return {
-        ink: cs.getPropertyValue("--color-pink").trim() || "#f68fe3",
-        accent: cs.getPropertyValue("--color-paper").trim() || "#ffffff",
+        ink: cs.getPropertyValue(fillVar).trim(),
+        dash: cs.getPropertyValue(dashVar).trim(),
+        accent: cs.getPropertyValue(accentVar).trim(),
+        outline: outlineVar ? cs.getPropertyValue(outlineVar).trim() : "",
       };
     };
 
     // макет → CSS-пікселі полотна
-    const cx = (x: number) => (x - designerBox.x) * k;
-    const cy = (y: number) => (y - designerBox.y) * k;
+    const cx = (x: number) => (x - area.x) * k;
+    const cy = (y: number) => (y - area.y) * k;
 
+    // Найближча літера до курсора (працює і для кількох рядків)
     const glyphAt = (x: number, y: number) => {
-      const top = Math.min(...glyphs.map((g) => g.box[1]));
-      const bottom = Math.max(...glyphs.map((g) => g.box[3]));
-      const slack = 24 / k;
-      if (y < top - slack || y > bottom + slack) return -1;
       let best = -1;
       let bestD = Infinity;
       glyphs.forEach((g, i) => {
         const x1 = g.box[0] + g.offset.x;
         const x2 = g.box[2] + g.offset.x;
-        const d = x < x1 ? x1 - x : x > x2 ? x - x2 : 0;
+        const y1 = g.box[1] + g.offset.y;
+        const y2 = g.box[3] + g.offset.y;
+        const dx = x < x1 ? x1 - x : x > x2 ? x - x2 : 0;
+        const dy = y < y1 ? y1 - y : y > y2 ? y - y2 : 0;
+        const d = Math.hypot(dx, dy);
         if (d < bestD) {
           bestD = d;
           best = i;
         }
       });
-      return bestD < 28 / k ? best : -1;
+      return bestD < 24 / k ? best : -1;
     };
 
     const designTransform = (c: CanvasRenderingContext2D, ox = 0, oy = 0) =>
-      c.setTransform(dpr * k, 0, 0, dpr * k, (-designerBox.x + ox) * dpr * k, (-designerBox.y + oy) * dpr * k);
+      c.setTransform(dpr * k, 0, 0, dpr * k, (-area.x + ox) * dpr * k, (-area.y + oy) * dpr * k);
 
     const drawDashes = (g: GlyphState, ink: string, alpha: number) => {
       sctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -208,10 +241,12 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
       ctx.strokeStyle = accent;
       ctx.lineWidth = 1;
       // білий на світлому тлі губиться — даємо йому тонку рожеву тінь
-      ctx.shadowColor = ink;
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
+      if (accentShadow) {
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+      }
 
       const moved = Math.hypot(g.offset.x, g.offset.y) * k;
       if (moved > 1) {
@@ -301,7 +336,7 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
     };
 
     const kick = (index: number) => {
-      const strength = FONT_SIZE * 11;
+      const strength = fontSize * 11;
       kicks.push({ index, at: pulse, velocity: strength });
       for (let d = 1; d < glyphs.length; d++) {
         const velocity = strength * Math.pow(KICK_DECAY, d);
@@ -318,7 +353,7 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
       const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
       last = now;
       pulse += dt;
-      const { ink, accent } = colors();
+      const { ink, dash, accent, outline } = colors();
       const damping = 2 * Math.sqrt(SPRING) * (1 - BOUNCE * 0.96);
 
       // друк
@@ -414,18 +449,24 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
       ctx.fillStyle = ink;
       for (const g of glyphs) {
         const moved = Math.hypot(g.offset.x, g.offset.y) * k;
-        if (moved > 1) drawDashes(g, ink, Math.min(1, moved / 24) * 0.55);
+        if (moved > 1) drawDashes(g, dash, Math.min(1, moved / 24) * 0.55);
       }
       for (const g of glyphs) {
         if (g.shown < 0.001) continue;
         if (g.outline < 0.999) {
           designTransform(ctx, g.offset.x, g.offset.y);
           ctx.globalAlpha = (1 - g.outline) * g.shown;
+          if (outline) {
+            ctx.strokeStyle = outline;
+            ctx.lineWidth = outlineWidth;
+            ctx.lineJoin = "round";
+            ctx.stroke(g.path);
+          }
           ctx.fillStyle = ink;
           ctx.fill(g.path);
           ctx.globalAlpha = 1;
         }
-        if (g.outline > 0.001) drawDashes(g, ink, g.outline * g.shown);
+        if (g.outline > 0.001) drawDashes(g, dash, g.outline * g.shown);
       }
       drawFrame(ink, accent);
 
@@ -461,7 +502,7 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
 
     const resize = () => {
       cssW = Math.max(1, container.clientWidth);
-      k = cssW / designerBox.w;
+      k = cssW / area.w;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(cssW * dpr);
       canvas.height = Math.round(Math.max(1, container.clientHeight) * dpr);
@@ -473,8 +514,8 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
 
     const locate = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      pointer.x = designerBox.x + (e.clientX - rect.left) / k;
-      pointer.y = designerBox.y + (e.clientY - rect.top) / k;
+      pointer.x = area.x + (e.clientX - rect.left) / k;
+      pointer.y = area.y + (e.clientY - rect.top) / k;
     };
     const onMove = (e: PointerEvent) => {
       locate(e);
@@ -555,7 +596,7 @@ export const DesignerTech = forwardRef<DesignerTechHandle, Props>(function Desig
       container.removeEventListener("pointercancel", onUp);
       container.removeEventListener("pointerleave", onLeave);
     };
-  }, [introDuration]);
+  }, [introDuration, glyphData, area, fontSize, fillVar, dashVar, accentVar, outlineVar, outlineWidth, accentShadow]);
 
   return (
     <div ref={containerRef} className={className} style={style} aria-hidden="true">

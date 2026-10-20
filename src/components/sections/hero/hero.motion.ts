@@ -1,6 +1,8 @@
 import { gsap } from "gsap";
-import { DESIGNER_TYPE_SECONDS, type DesignerTechHandle } from "./DesignerTech";
-import { sensesLines, sensesType } from "./lettering";
+import { DESIGNER_TYPE_SECONDS, type GlyphTechHandle } from "./GlyphTech";
+
+/** скільки триває друк OF VISUAL SENSES, с */
+export const SENSES_TYPE_SECONDS = 1;
 
 /*
  * Рух hero. Верстка — Hero.tsx, тут тільки анімація.
@@ -8,30 +10,30 @@ import { sensesLines, sensesType } from "./lettering";
  *  1. піксельне відео грає один раз → проявляється чисте фото;
  *  2. «Kateryna Smiian» проявляється по літерах маскою зліва направо з м'яким краєм;
  *  3. DESIGNER друкується по літерах (рамка виділення біжить по літері);
- *  4. одразу за ним друкується OF VISUAL SENSES з курсором;
+ *  4. одразу за ним так само друкується OF VISUAL SENSES;
  *  5. тарган і меню.
  */
 
 type Options = {
   /** true — без руху: одразу фінальний стан (prefers-reduced-motion) */
   instant: boolean;
-  designer: DesignerTechHandle | null;
+  designer: GlyphTechHandle | null;
+  senses: GlyphTechHandle | null;
   /** коли відео зникло і фото вже чисте (для фону PixelBlast) */
   onStage?: () => void;
 };
 
-export function playHeroReveal(root: HTMLElement, { instant, designer, onStage }: Options) {
+export function playHeroReveal(root: HTMLElement, { instant, designer, senses, onStage }: Options) {
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
   const nameWipes = q("[data-name-wipe]");
-  const sensesChars = q("[data-senses-char]");
-  const caret = q("[data-senses-caret]");
 
   if (instant) {
     gsap.set(video, { autoAlpha: 0 });
     gsap.set(q("[data-reveal]"), { opacity: 1 });
     gsap.set(nameWipes, { attr: { transform: "matrix(1 0 0 1 0 0)" } });
     designer?.showAll();
+    senses?.showAll();
     onStage?.();
     return null;
   }
@@ -68,23 +70,9 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, onStage }
   tl.call(() => void designer?.play(), undefined, nameDone - 0.2);
   const typed = nameDone - 0.2 + DESIGNER_TYPE_SECONDS;
 
-  // 4. OF VISUAL SENSES — посимвольно, з курсором
-  const step = 0.065;
-  let n = 0;
-  sensesLines.forEach((line, li) => {
-    line.forEach((glyph) => {
-      const at = typed + n * step;
-      const el = sensesChars[n];
-      tl.set(caret, { opacity: 1, attr: { x: glyph.next + 4, y: sensesType.baselines[li] - sensesType.capHeight } }, at);
-      tl.set(el, { opacity: 1 }, at);
-      n++;
-    });
-  });
-  const sensesDone = typed + n * step;
-  tl.to(caret, { opacity: 0, duration: 0.01, repeat: 5, yoyo: true, repeatDelay: 0.22 }, sensesDone + 0.1).set(
-    caret,
-    { opacity: 0 },
-  );
+  // 4. OF VISUAL SENSES — одразу за DESIGNER, теж по літерах (рамка біжить по літері)
+  tl.call(() => void senses?.play(), undefined, typed);
+  const sensesDone = typed + SENSES_TYPE_SECONDS;
 
   // 5. тарган і меню
   tl.fromTo(

@@ -8,9 +8,9 @@ import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
 import { navigation } from "@/content/site";
 import { LetterSwap } from "@/components/ui/LetterSwap";
-import { DesignerTech, type DesignerTechHandle } from "./DesignerTech";
-import { designerBox, nameGlyphs, sensesLines, sensesType } from "./lettering";
-import { playHeroReveal } from "./hero.motion";
+import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
+import { designerBox, designerGlyphs, nameGlyphs, sensesBox, sensesGlyphs } from "./lettering";
+import { playHeroReveal, SENSES_TYPE_SECONDS } from "./hero.motion";
 
 import photo from "@/assets/hero/photo.png";
 import photoCutout from "@/assets/hero/photo-cutout.png";
@@ -25,8 +25,8 @@ gsap.registerPlugin(useGSAP);
 /*
  * Figma: «Look & Feel 8» (node 6373:2521), 1920×1080.
  * Усі числа — пікселі макета. Усередині hero одиниця --u = --s, тобто сцена вписується в екран цілком.
- * Шари знизу вгору: фото → відео → DESIGNER → ім'я та OF VISUAL SENSES → тарган → ти (вирізка)
- *                  → крапкова фактура → пікселі від курсора → меню.
+ * Шари знизу вгору: фото → відео → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапки → пікселі → ти (вирізка)
+ *                  → меню.
  */
 const u = (n: number) => `calc(${n} * var(--u))`;
 const box = (left: number, top: number, width?: number, height?: number): CSSProperties => ({
@@ -38,8 +38,6 @@ const box = (left: number, top: number, width?: number, height?: number): CSSPro
 
 const fullBleed = "pointer-events-none absolute inset-0 size-full object-cover select-none";
 
-// Межі області, де ім'я «вирізає» OF VISUAL SENSES
-const knockPad = 20;
 // Маска появи імені: запас довкола літери і ширина м'якого краю (пікселі макета)
 const nameWipePad = 4;
 const nameWipeFeather = 60;
@@ -47,7 +45,8 @@ const nameWipeFeather = 60;
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const designerRef = useRef<DesignerTechHandle>(null);
+  const designerRef = useRef<GlyphTechHandle>(null);
+  const sensesRef = useRef<GlyphTechHandle>(null);
   const [pixelsOn, setPixelsOn] = useState(false);
   const [pixelColor, setPixelColor] = useState("");
 
@@ -66,7 +65,7 @@ export function Hero() {
       const reveal = (instant: boolean) => {
         if (revealed) return;
         revealed = true;
-        playHeroReveal(el, { instant, designer: designerRef.current, onStage });
+        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current, onStage });
       };
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -113,15 +112,6 @@ export function Hero() {
     { scope: root },
   );
 
-  const sensesBounds = {
-    x: Math.min(...sensesLines.flat().map((g) => g.box[0])) - knockPad,
-    y: Math.min(...sensesLines.flat().map((g) => g.box[1])) - knockPad,
-    w: 0,
-    h: 0,
-  };
-  sensesBounds.w = Math.max(...sensesLines.flat().map((g) => g.box[2])) + knockPad - sensesBounds.x;
-  sensesBounds.h = Math.max(...sensesLines.flat().map((g) => g.box[3])) + knockPad - sensesBounds.y;
-
   return (
     <section
       ref={root}
@@ -157,46 +147,36 @@ export function Hero() {
         className="pointer-events-none absolute top-1/2 left-1/2 h-1080 w-1920 -translate-x-1/2 -translate-y-1/2 select-none max-md:top-[19svh] max-md:translate-y-0"
       >
         {/* DESIGNER — полотно з ефектом наведення; ім'я вирізане маскою, як у Figma */}
-        <DesignerTech
+        <GlyphTech
           ref={designerRef}
+          glyphs={designerGlyphs}
+          box={designerBox}
+          fontSize={346.887}
+          fillVar="--color-pink"
+          dashVar="--color-pink"
+          accentVar="--color-paper"
+          accentShadow
           className="pointer-events-auto absolute touch-pan-y [mask-image:url(/hero/designer-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
           style={box(designerBox.x, designerBox.y, designerBox.w, designerBox.h)}
         />
 
+        {/* OF VISUAL SENSES — той самий ефект: рожеві рамки з підписами */}
+        <GlyphTech
+          ref={sensesRef}
+          glyphs={sensesGlyphs}
+          box={sensesBox}
+          fontSize={90}
+          fillVar="--color-lemon"
+          dashVar="--color-pink"
+          accentVar="--color-pink"
+          outlineVar="--color-ink-warm"
+          outlineWidth={1}
+          introDuration={SENSES_TYPE_SECONDS}
+          className="pointer-events-auto absolute touch-pan-y [mask-image:url(/hero/senses-knockout.svg)] [mask-size:100%_100%] [mask-repeat:no-repeat]"
+          style={box(sensesBox.x, sensesBox.y, sensesBox.w, sensesBox.h)}
+        />
+
         <svg viewBox="0 0 1920 1080" className="absolute inset-0 size-full overflow-visible">
-          <defs>
-            <mask
-              id="hero-senses-knockout"
-              maskUnits="userSpaceOnUse"
-              x={sensesBounds.x}
-              y={sensesBounds.y}
-              width={sensesBounds.w}
-              height={sensesBounds.h}
-            >
-              <rect x={sensesBounds.x} y={sensesBounds.y} width={sensesBounds.w} height={sensesBounds.h} fill="white" />
-              <g fill="black" stroke="black" strokeWidth={10} strokeLinejoin="round">
-                {nameGlyphs.map((g, i) => (
-                  <path key={i} d={g.d} />
-                ))}
-              </g>
-            </mask>
-          </defs>
-
-          {/* OF VISUAL SENSES — по літерах, щоб друкувати */}
-          <g mask="url(#hero-senses-knockout)" className="fill-lemon stroke-ink-warm" strokeWidth={1} paintOrder="stroke">
-            {sensesLines.flat().map((g, i) => (
-              <path key={i} d={g.d} data-senses-char data-reveal="senses" className="opacity-0" />
-            ))}
-          </g>
-          <rect
-            data-senses-caret
-            width={5}
-            height={sensesType.capHeight}
-            x={0}
-            y={0}
-            className="fill-ink-warm opacity-0"
-          />
-
           {/* Kateryna Smiian — кожна літера проявляється маскою зліва направо (м'який край) */}
           <defs>
             <linearGradient id="hero-name-wipe">
@@ -235,13 +215,10 @@ export function Hero() {
         </div>
       </div>
 
-      {/* 4. Ти — над написами (вирізана фігура з того ж фото) */}
-      <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
-
-      {/* 5. Крапкова фактура поверх усього */}
+      {/* 4. Крапкова фактура — під тобою, щоб крапки не лягали на тебе */}
       <Image src={stipple} alt="" sizes="100vw" className={fullBleed} />
 
-      {/* 6. Пікселі, що тягнуться за курсором */}
+      {/* 5. Пікселі, що тягнуться за курсором — теж позаду тебе */}
       {pixelsOn && pixelColor && (
         <div className="pointer-events-none absolute inset-0 opacity-60 motion-reduce:hidden">
           <PixelBlast
@@ -260,6 +237,9 @@ export function Hero() {
           />
         </div>
       )}
+
+      {/* 6. Ти — над написами, фактурою й пікселями (вирізана фігура з того ж фото) */}
+      <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
 
       {/* 7. Навігація по кутах */}
       <header className="text-u-20 tracking-[calc(-0.4*var(--u))] absolute inset-x-0 top-30 flex items-start justify-between px-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:px-[16px] max-md:text-[12px] max-md:tracking-[-0.02em]">

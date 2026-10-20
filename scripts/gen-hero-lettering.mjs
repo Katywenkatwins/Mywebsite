@@ -6,7 +6,7 @@
  *
  * Результат:
  *   src/components/sections/hero/lettering.ts   — контури DESIGNER, OF VISUAL SENSES, Kateryna Smiian
- *   public/hero/designer-knockout.svg             — маска «вирізу» імені з DESIGNER
+ *   public/hero/designer-knockout.svg, senses-knockout.svg — маски «вирізу» імені з написів
  *
  * Числа нижче — з Figma (вузли 12288:22413, 12289:22422, 12288:22415, група 12288:22417 на 14,96).
  * Дрібні зсуви (dy) звірені з absoluteRenderBounds у Figma.
@@ -60,16 +60,22 @@ const senses = ["OF", "VISUAL", "SENSES"].map((t, i) => line(cool, t, G.x + 1435
 const bounds = (gs) =>
   gs.reduce((a, g) => [Math.min(a[0], g.box[0]), Math.min(a[1], g.box[1]), Math.max(a[2], g.box[2]), Math.max(a[3], g.box[3])], [Infinity, Infinity, -Infinity, -Infinity]);
 
-// Полотно DESIGNER з запасом під рамку виділення, підписи й «іскри» ефекту наведення
+// Полотна з запасом під рамку виділення, підписи й «іскри» ефекту наведення
 const pad = 48;
-const db = bounds(designer);
-const designerBox = { x: r(db[0] - pad), y: r(db[1] - pad), w: r(db[2] - db[0] + pad * 2), h: r(db[3] - db[1] + pad * 2) };
+const canvasBox = (gs, padLeft = pad) => {
+  const b = bounds(gs);
+  return { x: r(b[0] - padLeft), y: r(b[1] - pad), w: r(b[2] - b[0] + padLeft + pad), h: r(b[3] - b[1] + pad * 2) };
+};
+const designerBox = canvasBox(designer);
+// зліва запас менший, щоб полотно не накривало R від DESIGNER (інакше R не ловив би курсор)
+const sensesBox = canvasBox(senses.flat(), 18);
 
-// Виріз: ім'я з обведенням 5 px назовні (у Figma — stroke OUTSIDE 5 px, віднятий від DESIGNER)
-const kb = designerBox;
-// Маска працює за прозорістю: усе непрозоре, крім імені з обведенням (там «дірка»)
-const knockout = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${kb.x} ${kb.y} ${kb.w} ${kb.h}" preserveAspectRatio="none"><defs><mask id="k" maskUnits="userSpaceOnUse" x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}"><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round">${name.map((g) => `<path d="${g.d}"/>`).join("")}</g></mask></defs><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#000" mask="url(#k)"/></svg>`;
-fs.writeFileSync(path.join(root, "public/hero/designer-knockout.svg"), knockout);
+// Маска «вирізу» імені (у Figma — ім'я з обведенням 5 px назовні, відняте від напису).
+// Працює за прозорістю: усе непрозоре, крім імені з обведенням (там «дірка»).
+const knockout = (kb) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${kb.x} ${kb.y} ${kb.w} ${kb.h}" preserveAspectRatio="none"><defs><mask id="k" maskUnits="userSpaceOnUse" x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}"><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round">${name.map((g) => `<path d="${g.d}"/>`).join("")}</g></mask></defs><rect x="${kb.x}" y="${kb.y}" width="${kb.w}" height="${kb.h}" fill="#000" mask="url(#k)"/></svg>`;
+fs.writeFileSync(path.join(root, "public/hero/designer-knockout.svg"), knockout(designerBox));
+fs.writeFileSync(path.join(root, "public/hero/senses-knockout.svg"), knockout(sensesBox));
 
 const ts = `// Згенеровано scripts/gen-hero-lettering.mjs — не редагуй вручну.
 // Координати — пікселі макета 1920×1080.
@@ -92,6 +98,12 @@ export const designerBox = ${JSON.stringify(designerBox)};
 export const nameGlyphs: Glyph[] = ${JSON.stringify(name)};
 
 export const sensesLines: Glyph[][] = ${JSON.stringify(senses)};
+
+/** OF VISUAL SENSES одним списком (для полотна з ефектом наведення) */
+export const sensesGlyphs: Glyph[] = sensesLines.flat();
+
+/** Полотно OF VISUAL SENSES (із запасом під ефект наведення) */
+export const sensesBox = ${JSON.stringify(sensesBox)};
 
 /** Розмір і висота великих літер OF VISUAL SENSES — для курсора друку */
 export const sensesType = { size: ${sSize}, capHeight: ${r(0.664 * sSize)}, lineHeight: ${lh}, baselines: ${JSON.stringify([0, 1, 2].map((i) => r(firstBaseline + i * lh)))} };
