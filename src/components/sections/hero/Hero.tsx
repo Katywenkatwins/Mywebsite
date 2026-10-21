@@ -262,7 +262,7 @@ export function Hero() {
       </div>
 
       {/* 7. Правий нижній кут: для кого і як допомагаю + дві кнопки */}
-      <div className="absolute right-30 bottom-30 flex flex-col items-end gap-16 max-md:inset-x-[16px] max-md:bottom-[16px] max-md:items-stretch max-md:gap-[12px]">
+      <div className="absolute right-30 bottom-30 flex flex-col items-start gap-16 max-md:inset-x-[16px] max-md:bottom-[16px] max-md:items-stretch max-md:gap-[12px]">
         <p className="sr-only">{hero.intro}</p>
         {/* Абзац — контури DM Mono з ефектом TechText; полотно ширше за абзац, щоб влізли рамки й підписи */}
         <div

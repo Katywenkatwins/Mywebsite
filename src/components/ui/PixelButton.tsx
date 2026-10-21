@@ -4,7 +4,8 @@
  * Прямокутна кнопка, що на наведенні заливається піксельним візерунком «хвилею» зліва направо.
  *  - primary:   рожева без обведення; заливка — білі напівпрозорі пікселі;
  *  - secondary: обведення нашим чорним (--color-ink-warm); заливка — рожеві пікселі.
- * Пікселі 3 px з проміжком 1 px. Хвиля трохи «рвана»: кожна клітинка має свій поріг, тож край не рівний.
+ * Візерунок той самий, що в плямі курсора (PixelBlast): квадрати 4 px, розкидані матрицею Байєра 8×8.
+ * На фронті хвилі пікселів рідко, позаду — густо, як край плями.
  * Кольори — токени з globals.css. При «менше руху» заливка з'являється одразу.
  */
 
@@ -19,8 +20,13 @@ type Props = {
   "data-reveal"?: string;
 };
 
-const CELL = 4; // крок сітки, px
-const DOT = 3; // розмір пікселя, px
+const CELL = 4; // розмір пікселя, px (як pixelSize у плямі курсора)
+const FRONT = 0.35; // ширина розмитого фронту хвилі (частка ширини кнопки)
+const DENSITY = 0.82; // наскільки густо заповнено позаду фронту
+
+// Матриця Байєра 8×8 — та сама, що в шейдері PixelBlast
+const bayer2 = (x: number, y: number) => (Math.floor(x) / 2 + Math.floor(y) * Math.floor(y) * 0.75) % 1;
+const bayer8 = (x: number, y: number) => (bayer2(x / 4, y / 4) * 0.25 + bayer2(x / 2, y / 2)) * 0.25 + bayer2(x, y);
 const IN_MS = 450;
 const OUT_MS = 320;
 
@@ -63,10 +69,7 @@ export function PixelButton({ href, variant, children, className = "", ...rest }
       rows = Math.ceil(h / CELL);
       thresholds = new Float32Array(cols * rows);
       for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          // хвиля зліва направо + трохи шуму, щоб край був «піксельний»
-          thresholds[r * cols + c] = (c / Math.max(1, cols - 1)) * 0.78 + Math.random() * 0.22;
-        }
+        for (let c = 0; c < cols; c++) thresholds[r * cols + c] = bayer8(c % 8, r % 8);
       }
       draw();
     };
@@ -79,9 +82,14 @@ export function PixelButton({ href, variant, children, className = "", ...rest }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalAlpha = alpha;
       ctx.fillStyle = fill;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if (thresholds[r * cols + c] < progress) ctx.fillRect(c * CELL, r * CELL, DOT, DOT);
+      // фронт іде зліва направо; густина = як далеко клітинка позаду фронту
+      const head = progress * (1 + FRONT);
+      for (let c = 0; c < cols; c++) {
+        const behind = (head - c / Math.max(1, cols - 1)) / FRONT;
+        const density = Math.min(1, Math.max(0, behind)) * DENSITY;
+        if (density <= 0) continue;
+        for (let r = 0; r < rows; r++) {
+          if (thresholds[r * cols + c] < density) ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
         }
       }
     };
