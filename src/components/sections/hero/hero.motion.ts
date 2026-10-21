@@ -44,7 +44,7 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
     designer?.showAll();
     senses?.showAll();
     intro?.showAll();
-    intro?.tint(introHighlightIndex, "--color-pink", 0);
+    intro?.tint(introHighlightIndex, "--color-pink", 0, "--color-ink-warm");
     frida?.start();
     return null;
   }
@@ -99,7 +99,7 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
 
   // 6. абзац у правому нижньому куті друкується, поки з'являється меню
   tl.call(() => void intro?.play(), undefined, sensesDone);
-  tl.call(() => intro?.tint(introHighlightIndex, "--color-pink", TINT_STEP), undefined, sensesDone + INTRO_TYPE_SECONDS + 0.3);
+  tl.call(() => intro?.tint(introHighlightIndex, "--color-pink", TINT_STEP, "--color-ink-warm"), undefined, sensesDone + INTRO_TYPE_SECONDS + 0.3);
 
   // 7. Фріда оживає
   tl.call(() => frida?.start(), undefined, sensesDone + 0.8);
