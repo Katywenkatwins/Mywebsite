@@ -31,7 +31,7 @@
   --color-paper: #ffffff;
 
   /* Шрифти: змінні задає next/font у layout.tsx */
-  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-mono: var(--font-dm-mono), var(--font-plex-cyr), ui-monospace, monospace;
   /* Astrum Cyrillic: файл шрифту ще не додано, поки запасний */
   --font-script: var(--font-astrum, "Astrum Cyrillic"), "Snell Roundhand", cursive;
 }

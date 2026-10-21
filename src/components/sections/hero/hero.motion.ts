@@ -1,5 +1,10 @@
 import { gsap } from "gsap";
 import { DESIGNER_TYPE_SECONDS, type GlyphTechHandle } from "./GlyphTech";
+import type { FridaHandle } from "./Frida";
+import { introHighlightIndex } from "./lettering";
+
+/** пауза між літерами, коли абзац перефарбовується в рожевий, с */
+const TINT_STEP = 0.035;
 
 /** скільки триває друк OF VISUAL SENSES, с */
 export const SENSES_TYPE_SECONDS = 1;
@@ -14,7 +19,8 @@ export const INTRO_TYPE_SECONDS = 1.8;
  *  3. DESIGNER друкується по літерах (рамка виділення біжить по літері);
  *  4. одразу за ним так само друкується OF VISUAL SENSES;
  *  5. тарган і меню, кнопки;
- *  6. абзац у правому нижньому куті друкується (TechText).
+ *  6. абзац у правому нижньому куті друкується (TechText), потім «I find the essence…» літера за літерою стає рожевим;
+ *  7. Фріда починає час від часу казати «Псс…».
  */
 
 type Options = {
@@ -23,9 +29,10 @@ type Options = {
   designer: GlyphTechHandle | null;
   senses: GlyphTechHandle | null;
   intro: GlyphTechHandle | null;
+  frida: FridaHandle | null;
 };
 
-export function playHeroReveal(root: HTMLElement, { instant, designer, senses, intro }: Options) {
+export function playHeroReveal(root: HTMLElement, { instant, designer, senses, intro, frida }: Options) {
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
   const nameWipes = q("[data-name-wipe]");
@@ -37,6 +44,8 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
     designer?.showAll();
     senses?.showAll();
     intro?.showAll();
+    intro?.tint(introHighlightIndex, "--color-pink", 0);
+    frida?.start();
     return null;
   }
 
@@ -90,6 +99,10 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
 
   // 6. абзац у правому нижньому куті друкується, поки з'являється меню
   tl.call(() => void intro?.play(), undefined, sensesDone);
+  tl.call(() => intro?.tint(introHighlightIndex, "--color-pink", TINT_STEP), undefined, sensesDone + INTRO_TYPE_SECONDS + 0.3);
+
+  // 7. Фріда оживає
+  tl.call(() => frida?.start(), undefined, sensesDone + 0.8);
 
   return tl;
 }

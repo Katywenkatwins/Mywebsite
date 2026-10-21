@@ -22,6 +22,11 @@ export type GlyphTechHandle = {
   play: () => number;
   /** Показати одразу без анімації */
   showAll: () => void;
+  /**
+   * Перефарбувати літери, починаючи з `from`, по одній у колір з CSS-змінної `colorVar`.
+   * `step` — пауза між літерами, с; 0 — одразу всі.
+   */
+  tint: (from: number, colorVar: string, step: number) => void;
 };
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -119,6 +124,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Команда могла прийти раніше, ніж полотно готове (useGSAP батька — це layout-ефект) — запам'ятовуємо її
   const pending = useRef<"play" | "show" | null>(null);
+  const pendingTint = useRef<[number, string, number] | null>(null);
   const api = useRef<GlyphTechHandle>({
     play: () => {
       pending.current = "play";
@@ -127,11 +133,15 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     showAll: () => {
       pending.current = "show";
     },
+    tint: (from, colorVar, step) => {
+      pendingTint.current = [from, colorVar, step];
+    },
   });
 
   useImperativeHandle(ref, () => ({
     play: () => api.current.play(),
     showAll: () => api.current.showAll(),
+    tint: (from, colorVar, step) => api.current.tint(from, colorVar, step),
   }));
 
   useEffect(() => {
@@ -162,6 +172,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     let visible = true;
     let pulse = 0;
     let dragging = -1;
+    // перефарбування літер по черзі
+    const tintState = { from: -1, colorVar: "", step: 0, start: 0 };
     // «Блок» — уявна літера з номером glyphs.length: увесь напис як одне ціле
     const BLOCK = glyphs.length;
     const blockMode = hover === "block";
@@ -391,6 +403,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       last = now;
       pulse += dt;
       const { ink, dash, accent, outline } = colors();
+      const tintColor = tintState.colorVar ? getComputedStyle(container).getPropertyValue(tintState.colorVar).trim() : "";
+      let tinting = false;
       const damping = 2 * Math.sqrt(SPRING) * (1 - BOUNCE * 0.96);
 
       // друк
@@ -501,15 +515,35 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
             ctx.lineJoin = "round";
             ctx.stroke(g.path);
           }
-          ctx.fillStyle = ink;
-          ctx.fill(g.path);
+          // перефарбування: основний колір перетікає в новий, літера за літерою
+          const gi = glyphs.indexOf(g);
+          let t = 0;
+          if (tintState.from >= 0 && gi >= tintState.from) {
+            t =
+              tintState.step <= 0
+                ? 1
+                : clamp01((pulse - tintState.start - (gi - tintState.from) * tintState.step) / 0.12);
+            if (t < 1) tinting = true;
+          }
+          const base = (1 - g.outline) * g.shown;
+          if (t < 1) {
+            ctx.globalAlpha = base * (1 - t);
+            ctx.fillStyle = ink;
+            ctx.fill(g.path);
+          }
+          if (t > 0) {
+            ctx.globalAlpha = base * t;
+            ctx.fillStyle = tintColor;
+            ctx.fill(g.path);
+          }
           ctx.globalAlpha = 1;
         }
         if (g.outline > 0.001) drawDashes(g, dash, g.outline * g.shown);
       }
       drawFrame(ink, accent);
 
-      const settling = moving || introducing || kicks.length > 0 || (frame.alpha > 0.01 && frame.alpha < 0.99);
+      const settling =
+        moving || introducing || tinting || kicks.length > 0 || (frame.alpha > 0.01 && frame.alpha < 0.99);
       if ((active || settling || frame.alpha > 0.01) && visible && alive) raf = requestAnimationFrame(tick);
     };
 
@@ -537,6 +571,13 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
         glyphs.forEach((g) => (g.shown = 1));
         wake();
       },
+      tint: (from, colorVar, step) => {
+        tintState.from = from;
+        tintState.colorVar = colorVar;
+        tintState.step = reduced ? 0 : step;
+        tintState.start = pulse;
+        wake();
+      },
     };
 
     const resize = () => {
@@ -560,7 +601,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     };
     // курсор над посиланням/кнопкою — це не наша літера
     const overControl = (e: PointerEvent) =>
-      e.target instanceof Element && !!e.target.closest("a[href], button, input, select, textarea, [role='button']");
+      e.target instanceof Element &&
+      !!e.target.closest("a[href], button, input, select, textarea, [role='button'], [data-tech-ignore]");
     const onMove = (e: PointerEvent) => {
       locate(e);
       const was = pointer.inside;
@@ -628,6 +670,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     if (pending.current === "play") api.current.play();
     if (pending.current === "show") api.current.showAll();
     pending.current = null;
+    if (pendingTint.current) api.current.tint(...pendingTint.current);
+    pendingTint.current = null;
 
     return () => {
       alive = false;

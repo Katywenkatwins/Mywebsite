@@ -85,7 +85,11 @@ fs.writeFileSync(path.join(root, "public/hero/name-knockout.svg"), knockout);
 // Абзац у правому нижньому куті hero: DM Mono 14 px, трекінг −2 %, рядок 18 px, до 34 знаків у рядку.
 // Координати — локальні, від верхнього лівого кута абзацу.
 const heroContent = fs.readFileSync(path.join(root, "src/content/hero.ts"), "utf8");
-const introText = heroContent.match(/intro:\s*"([^"]+)"/)[1];
+const introRaw = heroContent.match(/intro:\s*"([^"]+)"/)[1];
+const introText = introRaw.toUpperCase(); // на сайті абзац капслоком
+const highlightFrom = heroContent.match(/introHighlightFrom:\s*"([^"]+)"/)[1].toUpperCase();
+// номер першої літери, з якої починається перефарбування (пробіли контурів не мають, тож їх не рахуємо)
+const introHighlightIndex = introText.slice(0, introText.indexOf(highlightFrom)).replace(/\s/g, "").length;
 const pSize = 14;
 const pLine = 18;
 const pChars = 34;
@@ -140,6 +144,8 @@ export const introBox = ${JSON.stringify(introBox)};
 /** Полотно абзацу: праворуч і знизу — запас під рамку й підписи, ліворуч і вгору — далеко, щоб абзац можна було витягнути */
 export const introArea = ${JSON.stringify({ x: -introReach, y: -introReach, w: r(introBox.w + introReach + introPad), h: introBox.h + introReach + introPad })};
 export const introLines: string[] = ${JSON.stringify(pLines)};
+/** З якої літери абзац перефарбовується після появи (content/hero.ts → introHighlightFrom) */
+export const introHighlightIndex = ${introHighlightIndex};
 
 export const sensesType = { size: ${sSize}, capHeight: ${r(0.664 * sSize)}, lineHeight: ${lh}, baselines: ${JSON.stringify([0, 1, 2].map((i) => r(firstBaseline + i * lh)))} };
 `;

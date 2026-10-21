@@ -12,6 +12,15 @@ const dmMono = localFont({
   display: "swap",
 });
 
+// DM Mono не має кирилиці — для українських літер у тому ж стилі беремо IBM Plex Mono (лише кирилиця)
+const plexCyrillic = localFont({
+  src: "../fonts/IBMPlexMono-Cyrillic.woff2",
+  weight: "400",
+  style: "normal",
+  variable: "--font-plex-cyr",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: site.title,
   description: site.description,
@@ -29,7 +38,7 @@ const pageSizeScript = `(function(){var r=document.documentElement;function s(){
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="uk" className={dmMono.variable} suppressHydrationWarning>
+    <html lang="uk" className={`${dmMono.variable} ${plexCyrillic.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: pageSizeScript }} />
       </head>

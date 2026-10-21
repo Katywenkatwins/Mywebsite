@@ -9,12 +9,12 @@ import { navigation } from "@/content/site";
 import { LetterSwap } from "@/components/ui/LetterSwap";
 import { PixelButton } from "@/components/ui/PixelButton";
 import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
+import { Frida, type FridaHandle } from "./Frida";
 import { designerGlyphs, introArea, introBox, introGlyphs, letteringArea, nameGlyphs, sensesGlyphs } from "./lettering";
 import { INTRO_TYPE_SECONDS, playHeroReveal, SENSES_TYPE_SECONDS } from "./hero.motion";
 
 import photo from "@/assets/hero/photo.png";
 import photoCutout from "@/assets/hero/photo-cutout.png";
-import roach from "@/assets/hero/roach.png";
 import stipple from "@/assets/hero/stipple.png";
 
 
@@ -60,6 +60,7 @@ export function Hero() {
   const designerRef = useRef<GlyphTechHandle>(null);
   const sensesRef = useRef<GlyphTechHandle>(null);
   const introRef = useRef<GlyphTechHandle>(null);
+  const fridaRef = useRef<FridaHandle>(null);
 
   useGSAP(
     () => {
@@ -71,7 +72,13 @@ export function Hero() {
       const reveal = (instant: boolean) => {
         if (revealed) return;
         revealed = true;
-        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current, intro: introRef.current });
+        playHeroReveal(el, {
+          instant,
+          designer: designerRef.current,
+          senses: sensesRef.current,
+          intro: introRef.current,
+          frida: fridaRef.current,
+        });
       };
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -149,7 +156,6 @@ export function Hero() {
 
       {/* 3. Сцена 1920×1080 з написами, по центру екрана */}
       <div
-        aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 h-1080 w-1920 -translate-x-1/2 -translate-y-1/2 select-none max-md:top-[19svh] max-md:translate-y-0"
       >
         {/* DESIGNER — полотно з ефектом наведення; ім'я вирізане маскою, як у Figma */}
@@ -182,7 +188,7 @@ export function Hero() {
           style={box(letteringArea.x, letteringArea.y, letteringArea.w, letteringArea.h)}
         />
 
-        <svg viewBox="0 0 1920 1080" className="absolute inset-0 size-full overflow-visible">
+        <svg aria-hidden="true" viewBox="0 0 1920 1080" className="absolute inset-0 size-full overflow-visible">
           {/* Kateryna Smiian — кожна літера проявляється маскою зліва направо (м'який край) */}
           <defs>
             <linearGradient id="hero-name-wipe">
@@ -216,9 +222,8 @@ export function Hero() {
           </g>
         </svg>
 
-        <div data-reveal="roach" className="absolute opacity-0" style={box(693, 201, 93.757, 101.459)}>
-          <Image src={roach} alt="" className="block size-full" />
-        </div>
+        {/* Фріда: «Псс…» раз на кілька секунд, повідомлення на наведенні */}
+        <Frida ref={fridaRef} />
       </div>
 
       {/* 4. Крапкова фактура — під тобою, щоб крапки не лягали на тебе */}
