@@ -35,7 +35,7 @@
 - DESIGNER і OF VISUAL SENSES з ефектом наведення — `GlyphTech.tsx` (за мотивами TechText з React Bits), кольори через токени. Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).
 - Правий нижній кут hero: абзац «для кого / як допомагаю» (текст у `content/hero.ts` → `intro`, малюється контурами DM Mono з TechText у режимі `hover="block"` — весь абзац в одній рамці, тягнеться цілим; поява — так само по літерах; після зміни тексту запусти генератор) і дві кнопки PixelButton.
 - Абзац капслоком; після появи частина з `introHighlightFrom` («I find…») літера за літерою стає рожевою (`GlyphTech.tint`).
-- Фріда (`sections/hero/Frida.tsx`): раз на кілька секунд біля неї друкується «Псс…», вона ворушиться; на наведенні/дотику — повідомлення. Тексти — `content/hero.ts` → `frida`.
+- Фріда (`sections/hero/Frida.tsx`): раз на кілька секунд біля неї друкується «Psst…», вона ворушиться; на наведенні/дотику — повідомлення. Тексти — `content/hero.ts` → `frida`.
 - Шрифт DM Mono не має кирилиці — для українських літер у стеку `--font-mono` стоїть IBM Plex Mono (тільки кирилиця, `src/fonts`).
 - Графіка hero лежить у `src/assets/hero`, відео — у `public/hero`.
 

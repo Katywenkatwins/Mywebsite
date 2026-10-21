@@ -2,8 +2,8 @@
 
 /*
  * Фріда — тарган-митець біля DESIGNER.
- *  - раз на кілька секунд поруч друкується «Псс…», а Фріда в цей момент ворушиться; потім напис зникає;
- *  - на наведенні (або дотику) друкується її повідомлення — стиль як абзац унизу hero, тільки вужчий;
+ *  - раз на кілька секунд поруч друкується «Psst…», а Фріда в цей момент ворушиться; потім напис зникає;
+ *  - на наведенні (або дотику) друкується її повідомлення — DM Mono 12 px, звичайним регістром, вужче за абзац унизу;
  *  - курсор тут «активний» (квадратик), і TechText DESIGNER під нею не спрацьовує (data-tech-ignore).
  * Тексти — content/hero.ts → frida. Цикл вмикає hero.motion після появи таргана (start()).
  */
@@ -55,7 +55,7 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
       const message = q("[data-message-char]");
       const trigger = q("[data-frida]")[0] as HTMLElement;
 
-      // «Псс…»: друкується, Фріда ворушиться, тримаємо, зникає; повтор через PAUSE_SECONDS
+      // «Psst…»: друкується, Фріда ворушиться, тримаємо, зникає; повтор через PAUSE_SECONDS
       const loop = gsap.timeline({ paused: true, repeat: -1, repeatDelay: PAUSE_SECONDS });
       loop
         .set(teaser, { opacity: 0 })
@@ -134,7 +134,7 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
         data-tech-ignore
         role="button"
         tabIndex={0}
-        aria-label={`Фріда: ${hero.frida.teaser} ${hero.frida.message}`}
+        aria-label={`Frida: ${hero.frida.teaser} ${hero.frida.message}`}
         aria-expanded="false"
         className="pointer-events-auto absolute opacity-0 outline-none"
         style={{ ...box(ROACH.x, ROACH.y, ROACH.w), height: u(ROACH.h) }}
@@ -144,17 +144,17 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
         </div>
       </div>
 
-      {/* Текст — як абзац унизу hero: DM Mono, великі літери, 14 px, рядок 18 px */}
+      {/* Текст — DM Mono 12 px, рядок 16 px, звичайним регістром */}
       <p
         aria-hidden="true"
-        className="text-u-14 tracking-[calc(-0.28*var(--u))] pointer-events-none absolute leading-[calc(18*var(--u))] text-ink uppercase"
+        className="text-u-12 tracking-[calc(-0.24*var(--u))] pointer-events-none absolute leading-[calc(16*var(--u))] text-ink"
         style={box(TEXT_X, TEXT_Y, BUBBLE_W)}
       >
         {chars(hero.frida.teaser, "data-teaser-char")}
       </p>
       <p
         aria-hidden="true"
-        className="text-u-14 tracking-[calc(-0.28*var(--u))] pointer-events-none absolute leading-[calc(18*var(--u))] text-ink uppercase"
+        className="text-u-12 tracking-[calc(-0.24*var(--u))] pointer-events-none absolute leading-[calc(16*var(--u))] text-ink"
         style={box(TEXT_X, TEXT_Y, BUBBLE_W)}
       >
         {chars(hero.frida.message, "data-message-char")}
