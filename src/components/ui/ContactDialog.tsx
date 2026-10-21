@@ -1,16 +1,26 @@
 "use client";
 
 /*
- * Вікно зворотного зв'язку (нативний <dialog>: фокус, Esc і фон уже працюють).
+ * Вікно зворотного зв'язку — одне на весь сайт (нативний <dialog>: фокус, Esc і затемнення вже працюють).
+ * Відкрити з будь-якого місця: openContact(). Саме вікно живе в SiteChrome (layout.tsx).
  * TODO(Катя): форми ще немає в макеті — поки помітний плейсхолдер. Поля й відправку додамо, коли буде макет.
  */
 
-import { forwardRef } from "react";
+import { useEffect, useRef } from "react";
 
-type Props = { title: string };
+const EVENT = "contact:open";
 
-export const ContactDialog = forwardRef<HTMLDialogElement, Props>(function ContactDialog({ title }, ref) {
-  const close = (e: React.MouseEvent<HTMLElement>) => e.currentTarget.closest("dialog")?.close();
+export const openContact = () => window.dispatchEvent(new Event(EVENT));
+
+export function ContactDialog({ title, closeLabel }: { title: string; closeLabel: string }) {
+  const ref = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const open = () => ref.current?.showModal();
+    window.addEventListener(EVENT, open);
+    return () => window.removeEventListener(EVENT, open);
+  }, []);
+
   return (
     <dialog
       ref={ref}
@@ -29,11 +39,11 @@ export const ContactDialog = forwardRef<HTMLDialogElement, Props>(function Conta
       </p>
       <button
         type="button"
-        onClick={close}
+        onClick={() => ref.current?.close()}
         className="mt-[24px] border border-ink px-[18px] py-[10px] text-[14px] uppercase"
       >
-        Close
+        {closeLabel}
       </button>
     </dialog>
   );
-});
+}

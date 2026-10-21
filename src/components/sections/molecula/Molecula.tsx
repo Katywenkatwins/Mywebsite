@@ -13,9 +13,10 @@ import { molecula, type MoleculaCard } from "@/content/molecula";
 import { ChalkField } from "@/components/effects/ChalkField";
 import { CardStack } from "@/components/ui/CardStack";
 import { BlotButton } from "@/components/ui/BlotButton";
-import { ContactDialog } from "@/components/ui/ContactDialog";
+import { openContact } from "@/components/ui/ContactDialog";
 import { NotesRoach } from "./NotesRoach";
-import { SCREENS_PER_CARD, useScrollSteps } from "./molecula.motion";
+import { PixelSeam } from "./PixelSeam";
+import { SCREENS_PER_CARD, useMoleculaReveal, useScrollSteps } from "./molecula.motion";
 
 const u = (n: number) => `calc(${n} * var(--u))`;
 const fromCenter = (x: number, y: number): CSSProperties => ({
@@ -66,15 +67,16 @@ function Card({ card, index }: { card: MoleculaCard; index: number }) {
 
 export function Molecula() {
   const sectionRef = useRef<HTMLElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const count = molecula.cards.length;
   const [step, request] = useScrollSteps(sectionRef, count);
+  useMoleculaReveal(sectionRef);
 
   return (
     <section
       ref={sectionRef}
       id="molecula"
       aria-labelledby="molecula-heading"
+      data-nav-theme="dark"
       className="relative bg-ink"
       style={{ height: `calc(100svh + ${(count - 1) * SCREENS_PER_CARD * 100}svh)` }}
     >
@@ -82,18 +84,24 @@ export function Molecula() {
         {molecula.heading}
       </h2>
       <div className="sticky top-0 h-svh overflow-hidden [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/700)]">
-        <ChalkField className="absolute inset-0" />
+        {/* тло проявляється, коли секція повністю заїхала (molecula.motion → useMoleculaReveal) */}
+        <div data-mol="chalk" className="absolute inset-0 opacity-0">
+          <ChalkField className="absolute inset-0" />
+        </div>
+        <PixelSeam />
 
         <div className="absolute" style={{ ...fromCenter(CARD.x, CARD.y), width: u(CARD.w), height: u(CARD.h) }}>
-          <CardStack
-            className="size-full"
-            label={molecula.heading}
-            cards={molecula.cards.map((card, i) => (
-              <Card key={card.title} card={card} index={i} />
-            ))}
-            step={step}
-            onRequest={request}
-          />
+          <div data-mol="cards" className="size-full opacity-0">
+            <CardStack
+              className="size-full"
+              label={molecula.heading}
+              cards={molecula.cards.map((card, i) => (
+                <Card key={card.title} card={card} index={i} />
+              ))}
+              step={step}
+              onRequest={request}
+            />
+          </div>
           <p className="sr-only" aria-live="polite">
             {`${step + 1} / ${count}. ${molecula.hint}`}
           </p>
@@ -105,17 +113,19 @@ export function Molecula() {
           />
         </div>
 
-        <div className="absolute -translate-x-1/2" style={fromCenter(CARD.x + CARD.w / 2, 812)}>
+        <div data-mol="cta" className="absolute -translate-x-1/2 opacity-0" style={fromCenter(CARD.x + CARD.w / 2, 812)}>
           <BlotButton
             className="px-18 py-12 text-u-14 uppercase tracking-[calc(-0.28*var(--u))] max-md:px-[14px] max-md:py-[10px] max-md:text-[12px]"
             aria-haspopup="dialog"
-            onClick={() => dialogRef.current?.showModal()}
+            onClick={openContact}
           >
             {molecula.cta}
           </BlotButton>
         </div>
       </div>
-      <ContactDialog ref={dialogRef} title={molecula.cta} />
+      <noscript>
+        <style>{`[data-mol]{opacity:1!important}[data-seam]{display:none}`}</style>
+      </noscript>
     </section>
   );
 }

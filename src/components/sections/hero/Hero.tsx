@@ -5,7 +5,6 @@ import Image from "next/image";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
-import { navigation } from "@/content/site";
 import { LetterSwap } from "@/components/ui/LetterSwap";
 import { PixelButton } from "@/components/ui/PixelButton";
 import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
@@ -39,20 +38,6 @@ const fullBleed = "pointer-events-none absolute inset-0 size-full object-cover s
 // Маска появи імені: запас довкола літери і ширина м'якого краю (пікселі макета)
 const nameWipePad = 4;
 const nameWipeFeather = 60;
-
-// Пункти меню у форматі [MOLECULA     ] — DM Mono моноширинний, тож дужки вирівнюються в стовпчик
-const menuWidth = Math.max(...navigation.map((item) => item.label.length)) + 2;
-function MenuLabel({ label }: { label: string }) {
-  return (
-    <>
-      <span aria-hidden="true">[</span>
-      <LetterSwap text={label} />
-      <span aria-hidden="true" className="whitespace-pre">
-        {" ".repeat(menuWidth - label.length)}]
-      </span>
-    </>
-  );
-}
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
@@ -129,6 +114,7 @@ export function Hero() {
     <section
       ref={root}
       id="top"
+      data-nav-theme="light"
       className="relative h-svh overflow-hidden bg-studio [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/1920)]"
     >
       <h1 className="sr-only">{hero.headingForScreenReaders}</h1>
@@ -232,39 +218,12 @@ export function Hero() {
       {/* 5. Ти — над написами й фактурою (вирізана фігура з того ж фото) */}
       <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
 
-      {/* 6. Навігація по кутах. Самі блоки меню «прозорі» для миші (інакше вони накривали б OF і верх DESIGNER), клікаються лише посилання */}
-      <header className="pointer-events-none text-u-14 tracking-[calc(-0.28*var(--u))] absolute inset-x-0 top-30 flex items-start justify-between px-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:px-[16px] max-md:text-[11px] max-md:tracking-[-0.02em]">
+      {/* 6. Підпис угорі ліворуч. Меню, «get in touch» і мови закріплені в екрані на всьому сайті — layout/SiteChrome */}
+      <header className="pointer-events-none text-u-14 tracking-[calc(-0.28*var(--u))] absolute top-30 left-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:left-[16px] max-md:text-[11px] max-md:tracking-[-0.02em]">
         <a data-reveal="nav" href="#top" className="letter-swap-trigger pointer-events-auto opacity-0">
           <LetterSwap text={hero.signature} />
         </a>
-        <nav aria-label="Головне меню">
-          <ul className="flex flex-col items-end gap-2 max-md:gap-[4px]">
-            {navigation.map((item) => (
-              <li key={item.id} data-reveal="nav" className="opacity-0 focus-within:opacity-100">
-                <a href={`#${item.id}`} className="letter-swap-trigger pointer-events-auto inline-flex">
-                  <MenuLabel label={item.label} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </header>
-
-      {/* Дзеркальне меню внизу — декоративний повтор для миші, скрінрідер його пропускає */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none text-u-14 tracking-[calc(-0.28*var(--u))] absolute inset-x-0 bottom-30 flex items-end justify-between px-30 leading-[normal] text-ink uppercase max-md:hidden"
-      >
-        <ul className="flex flex-col items-start gap-2">
-          {navigation.map((item) => (
-            <li key={item.id} data-reveal="nav" className="opacity-0">
-              <a href={`#${item.id}`} tabIndex={-1} className="letter-swap-trigger pointer-events-auto inline-flex">
-                <MenuLabel label={item.label} />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
 
       {/* 7. Правий нижній кут: для кого і як допомагаю + дві кнопки */}
       <div className="absolute right-30 bottom-30 flex flex-col items-start gap-16 max-md:inset-x-[16px] max-md:bottom-[16px] max-md:items-stretch max-md:gap-[12px]">

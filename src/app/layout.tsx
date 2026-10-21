@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { site } from "@/content/site";
 import { CursorPixels } from "@/components/effects/CursorPixels";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import "./globals.css";
 
 const dmMono = localFont({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         {children}
+        <SiteChrome />
         <CursorPixels />
       </body>
     </html>

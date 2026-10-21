@@ -89,11 +89,12 @@ export function NotesRoach({ className, noteClassName }: Props) {
     <div ref={root} className="contents">
       <div
         data-roach
+        data-mol="roach"
         role="button"
         tabIndex={0}
         aria-label={`${molecula.roach.label}: ${molecula.roach.message}`}
         aria-expanded="false"
-        className={`absolute z-20 outline-none focus-visible:outline-2 focus-visible:outline-paper ${className}`}
+        className={`absolute z-20 opacity-0 outline-none focus-visible:outline-2 focus-visible:outline-paper ${className}`}
       >
         <div data-roach-body className="size-full">
           <Image src={roach} alt="" sizes="(max-width: 767px) 30vw, 15vw" className="block size-full" draggable={false} />

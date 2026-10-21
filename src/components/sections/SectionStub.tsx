@@ -6,6 +6,7 @@ export function SectionStub({ id, title }: Props) {
     <section
       id={id}
       aria-label={title}
+      data-nav-theme="light"
       className="flex min-h-[50svh] items-center justify-center border-t border-ink/10 bg-paper"
     >
       <p className="text-u-14 uppercase tracking-[calc(-0.28*var(--u))] text-ink/40">{title} — скоро</p>

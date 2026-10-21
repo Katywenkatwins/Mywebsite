@@ -36,10 +36,16 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
   const nameWipes = q("[data-name-wipe]");
+  // меню, «get in touch» і мови закріплені поза hero (layout/SiteChrome), але з'являються разом з меню hero
+  const showChrome = (instant: boolean) => {
+    document.documentElement.dataset.chrome = instant ? "instant" : "show";
+    window.dispatchEvent(new Event("chrome:show"));
+  };
 
   if (instant) {
     gsap.set(video, { autoAlpha: 0 });
     gsap.set(q("[data-reveal]"), { opacity: 1 });
+    showChrome(true);
     gsap.set(nameWipes, { attr: { transform: "matrix(1 0 0 1 0 0)" } });
     designer?.showAll();
     senses?.showAll();
@@ -96,6 +102,8 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses, i
     { opacity: 1, yPercent: 0, duration: 0.6, stagger: 0.04 },
     sensesDone - 0.3,
   );
+
+  tl.call(() => showChrome(false), undefined, sensesDone - 0.3);
 
   // 6. абзац у правому нижньому куті друкується, поки з'являється меню
   tl.call(() => void intro?.play(), undefined, sensesDone);

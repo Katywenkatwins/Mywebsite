@@ -9,6 +9,10 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 export const SCREENS_PER_CARD = 0.6;
 
@@ -64,4 +68,64 @@ export function useScrollSteps(sectionRef: RefObject<HTMLElement | null>, count:
   );
 
   return [step, request] as const;
+}
+
+/*
+ * Поява секції. Спершу секція — просто чорна (угорі — піксельний шов, PixelSeam, що розчиняється на скрол).
+ * Коли верх секції дійшов до верху екрана: проявляється крейдове тло → прилітає стопка карток → вистрибує тарган → кнопка.
+ * Якщо прокрутити назад так, що секція повністю зникла внизу, — усе ховається, і наступного разу поява повториться.
+ * При «менше руху» — одразу фінальний стан.
+ */
+export function useMoleculaReveal(sectionRef: RefObject<HTMLElement | null>) {
+  useGSAP(
+    () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const q = gsap.utils.selector(el);
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+      tl.to(q('[data-mol="chalk"]'), { opacity: 1, duration: 0.9, ease: "power2.out" })
+        .fromTo(
+          q('[data-mol="cards"]'),
+          { opacity: 0, yPercent: 18, rotation: -6 },
+          { opacity: 1, yPercent: 0, rotation: 0, duration: 0.9, ease: "back.out(1.4)" },
+          0.35,
+        )
+        .fromTo(
+          q('[data-mol="roach"]'),
+          { opacity: 0, scale: 0.2, rotation: -30 },
+          { opacity: 1, scale: 1, rotation: 0, duration: 0.8, ease: "back.out(2.2)" },
+          0.85,
+        )
+        .fromTo(q('[data-mol="cta"]'), { opacity: 0, yPercent: 60 }, { opacity: 1, yPercent: 0, duration: 0.6 }, 1);
+
+      let shown = false;
+      let raf = 0;
+      const check = () => {
+        raf = 0;
+        const top = el.getBoundingClientRect().top;
+        if (!shown && top <= 1) {
+          shown = true;
+          if (reduced) tl.progress(1);
+          else tl.play(0);
+        } else if (shown && top >= window.innerHeight) {
+          shown = false;
+          tl.pause(0);
+        }
+      };
+      const onScroll = () => {
+        if (!raf) raf = requestAnimationFrame(check);
+      };
+      check();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      return () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      };
+    },
+    { scope: sectionRef },
+  );
 }
