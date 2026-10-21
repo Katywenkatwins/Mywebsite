@@ -42,6 +42,8 @@ type Props = {
   outlineWidth?: number;
   /** рожева тінь під білими рамками, щоб читались на світлому тлі */
   accentShadow?: boolean;
+  /** «letter» — рамка на літеру під курсором; «block» — весь напис у одній рамці, тягнеться цілим */
+  hover?: "letter" | "block";
   className?: string;
   style?: React.CSSProperties;
   /** тривалість друку, с */
@@ -106,6 +108,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     outlineVar,
     outlineWidth = 1,
     accentShadow = false,
+    hover = "letter",
     className,
     style,
     introDuration = DESIGNER_TYPE_SECONDS,
@@ -159,6 +162,17 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     let visible = true;
     let pulse = 0;
     let dragging = -1;
+    // «Блок» — уявна літера з номером glyphs.length: увесь напис як одне ціле
+    const BLOCK = glyphs.length;
+    const blockMode = hover === "block";
+    const blockBox: [number, number, number, number] = [
+      Math.min(...glyphs.map((g) => g.box[0])),
+      Math.min(...glyphs.map((g) => g.box[1])),
+      Math.max(...glyphs.map((g) => g.box[2])),
+      Math.max(...glyphs.map((g) => g.box[3])),
+    ];
+    const target = (i: number) =>
+      i === BLOCK ? { char: "¶", box: blockBox, offset: glyphs[0].offset } : glyphs[i];
     let cursor = "";
     const cursorId = Symbol("glyph-tech");
     let intro: "hidden" | "typing" | "done" = "hidden";
@@ -203,6 +217,19 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       return bestD < 24 / k ? best : -1;
     };
 
+    // Що під курсором: літера, весь блок або нічого
+    const pick = (x: number, y: number) => {
+      if (!blockMode) return glyphAt(x, y);
+      const o = glyphs[0].offset;
+      const slack = 8 / k;
+      return x >= blockBox[0] + o.x - slack &&
+        x <= blockBox[2] + o.x + slack &&
+        y >= blockBox[1] + o.y - slack &&
+        y <= blockBox[3] + o.y + slack
+        ? BLOCK
+        : -1;
+    };
+
     const designTransform = (c: CanvasRenderingContext2D, ox = 0, oy = 0) =>
       c.setTransform(dpr * k, 0, 0, dpr * k, (-area.x + ox) * dpr * k, (-area.y + oy) * dpr * k);
 
@@ -238,8 +265,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
 
     // Рамка, «іскри» й підпис — у CSS-пікселях, щоб були тонкими на будь-якому масштабі
     const drawFrame = (ink: string, accent: string) => {
-      const g = glyphs[frame.index];
-      if (!g || frame.alpha < 0.01) return;
+      if (frame.index < 0 || frame.alpha < 0.01) return;
+      const g = target(frame.index);
       const a = frame.alpha;
       const crisp = (v: number) => (Math.round(v * dpr) + 0.5) / dpr;
       const x1 = crisp(frame.x1);
@@ -394,7 +421,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
 
       let moving = false;
       glyphs.forEach((g, i) => {
-        if (i === dragging) {
+        if (i === dragging || dragging === BLOCK) {
           g.offset.x = approach(g.offset.x, pointer.x - grab.x, dt, 0.03);
           g.offset.y = approach(g.offset.y, pointer.y - grab.y, dt, 0.03);
           g.velocity.x = 0;
@@ -415,9 +442,9 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       });
 
       const active = ready && (pointer.inside || dragging >= 0);
-      const focus = introducing ? typing : dragging >= 0 ? dragging : active ? glyphAt(pointer.x, pointer.y) : -1;
+      const focus = introducing ? typing : dragging >= 0 ? dragging : active ? pick(pointer.x, pointer.y) : -1;
       if (focus >= 0) {
-        const g = glyphs[focus];
+        const g = target(focus);
         const bx1 = cx(g.box[0] + g.offset.x) - 6;
         const by1 = cy(g.box[1] + g.offset.y) - 6;
         const bx2 = cx(g.box[2] + g.offset.x) + 6;
@@ -537,7 +564,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
     const onMove = (e: PointerEvent) => {
       locate(e);
       const was = pointer.inside;
-      pointer.inside = dragging >= 0 || (!overControl(e) && glyphAt(pointer.x, pointer.y) >= 0);
+      pointer.inside = dragging >= 0 || (!overControl(e) && pick(pointer.x, pointer.y) >= 0);
       if (pointer.inside || was) wake();
     };
     const onLeave = () => {
@@ -549,7 +576,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       if (overControl(e)) return;
       locate(e);
       const primary = e.pointerType !== "mouse" || e.button === 0;
-      const index = intro !== "done" || !primary ? -1 : glyphAt(pointer.x, pointer.y);
+      const index = intro !== "done" || !primary ? -1 : pick(pointer.x, pointer.y);
       if (index < 0) return;
       pointer.inside = true;
       press.x = e.clientX;
@@ -560,8 +587,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       if (e.pointerType !== "touch") {
         e.preventDefault(); // без виділення тексту під час перетягування
         dragging = index;
-        grab.x = pointer.x - glyphs[index].offset.x;
-        grab.y = pointer.y - glyphs[index].offset.y;
+        grab.x = pointer.x - target(index).offset.x;
+        grab.y = pointer.y - target(index).offset.y;
       }
       wake();
     };
@@ -569,7 +596,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       if (dragging >= 0) {
         dragging = -1;
         locate(e);
-        pointer.inside = glyphAt(pointer.x, pointer.y) >= 0;
+        pointer.inside = pick(pointer.x, pointer.y) >= 0;
       }
       if (
         e.type === "pointerup" &&
@@ -578,7 +605,8 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
         performance.now() - press.time < 450 &&
         Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6
       ) {
-        kick(press.index);
+        // у режимі блоку хвиля стартує з літери під курсором
+        kick(press.index === BLOCK ? Math.max(0, glyphAt(pointer.x, pointer.y)) : press.index);
       }
       press.index = -1;
       wake();
@@ -614,7 +642,7 @@ export const GlyphTech = forwardRef<GlyphTechHandle, Props>(function GlyphTech(
       window.removeEventListener("pointercancel", onUp);
       document.documentElement.removeEventListener("pointerleave", onLeave);
     };
-  }, [introDuration, glyphData, area, fontSize, fillVar, dashVar, accentVar, outlineVar, outlineWidth, accentShadow]);
+  }, [introDuration, glyphData, area, fontSize, fillVar, dashVar, accentVar, outlineVar, outlineWidth, accentShadow, hover]);
 
   return (
     <div ref={containerRef} className={className} style={style} aria-hidden="true">

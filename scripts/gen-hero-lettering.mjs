@@ -106,6 +106,7 @@ const introGlyphs = pLines.flatMap((t, i) => line(dmMono, t, 0, pFirst + i * pLi
 const charW = (600 / 1000) * pSize - 0.02 * pSize;
 const introBox = { x: 0, y: 0, w: r(Math.max(...pLines.map((t) => t.length)) * charW), h: pLines.length * pLine };
 const introPad = 28;
+const introReach = 600;
 
 const ts = `// Згенеровано scripts/gen-hero-lettering.mjs — не редагуй вручну.
 // Координати — пікселі макета 1920×1080.
@@ -136,8 +137,8 @@ export const sensesGlyphs: Glyph[] = sensesLines.flat();
 /** Абзац hero (DM Mono) — контури в локальних координатах абзацу */
 export const introGlyphs: Glyph[] = ${JSON.stringify(introGlyphs)};
 export const introBox = ${JSON.stringify(introBox)};
-/** Полотно абзацу з запасом під рамку й підписи TechText */
-export const introArea = ${JSON.stringify({ x: -introPad, y: -introPad, w: r(introBox.w + introPad * 2), h: introBox.h + introPad * 2 })};
+/** Полотно абзацу: праворуч і знизу — запас під рамку й підписи, ліворуч і вгору — далеко, щоб абзац можна було витягнути */
+export const introArea = ${JSON.stringify({ x: -introReach, y: -introReach, w: r(introBox.w + introReach + introPad), h: introBox.h + introReach + introPad })};
 export const introLines: string[] = ${JSON.stringify(pLines)};
 
 export const sensesType = { size: ${sSize}, capHeight: ${r(0.664 * sSize)}, lineHeight: ${lh}, baselines: ${JSON.stringify([0, 1, 2].map((i) => r(firstBaseline + i * lh)))} };

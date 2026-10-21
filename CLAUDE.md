@@ -33,7 +33,7 @@
 - Анімація (`hero.motion.ts`): відео → фото → ім'я проявляється маскою по літерах зліва направо → DESIGNER друкується → OF VISUAL SENSES друкується → тарган і меню.
 - Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генерується маска «вирізу» імені `public/hero/name-knockout.svg`. Полотна ефекту наведення — на всю сцену (`letteringArea`) і не ловлять мишу самі: GlyphTech слухає вікно, тож літери можна витягувати далеко.
 - DESIGNER і OF VISUAL SENSES з ефектом наведення — `GlyphTech.tsx` (за мотивами TechText з React Bits), кольори через токени. Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).
-- Правий нижній кут hero: абзац «для кого / як допомагаю» (текст у `content/hero.ts` → `intro`, малюється контурами DM Mono з TechText; після зміни тексту запусти генератор) і дві кнопки PixelButton.
+- Правий нижній кут hero: абзац «для кого / як допомагаю» (текст у `content/hero.ts` → `intro`, малюється контурами DM Mono з TechText у режимі `hover="block"` — весь абзац в одній рамці, тягнеться цілим; поява — так само по літерах; після зміни тексту запусти генератор) і дві кнопки PixelButton.
 - Графіка hero лежить у `src/assets/hero`, відео — у `public/hero`.
 
 ## Словник анімацій

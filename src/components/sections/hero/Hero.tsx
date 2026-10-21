@@ -279,6 +279,7 @@ export function Hero() {
             dashVar="--color-pink"
             accentVar="--color-pink"
             introDuration={INTRO_TYPE_SECONDS}
+            hover="block"
             className="absolute"
             style={{
               left: `${(introArea.x / introBox.w) * 100}%`,
