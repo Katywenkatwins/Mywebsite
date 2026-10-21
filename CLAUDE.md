@@ -34,8 +34,8 @@
 - Літери hero — не текст, а контури зі шрифтів (`lettering.ts`), тому стоять точно як у Figma. Їх генерує `node scripts/gen-hero-lettering.mjs` з файлів шрифтів у `assets-for-site/` (шрифти не в git). Там же генерується маска «вирізу» імені `public/hero/name-knockout.svg`. Полотна ефекту наведення — на всю сцену (`letteringArea`) і не ловлять мишу самі: GlyphTech слухає вікно, тож літери можна витягувати далеко.
 - DESIGNER і OF VISUAL SENSES з ефектом наведення — `GlyphTech.tsx` (за мотивами TechText з React Bits), кольори через токени. Пункти меню — `components/ui/LetterSwap` (3D-перекидання літер, CSS).
 - Правий нижній кут hero: абзац «для кого / як допомагаю» (текст у `content/hero.ts` → `intro`, малюється контурами DM Mono з TechText у режимі `hover="block"` — весь абзац в одній рамці, тягнеться цілим; поява — так само по літерах; після зміни тексту запусти генератор) і дві кнопки PixelButton.
-- Абзац капслоком; після появи частина з `introHighlightFrom` («I find…») літера за літерою стає рожевою (`GlyphTech.tint`).
-- Фріда (`sections/hero/Frida.tsx`): раз на кілька секунд біля неї друкується «Psst…», вона ворушиться; на наведенні/дотику — повідомлення. Тексти — `content/hero.ts` → `frida`.
+- Абзац капслоком; після появи частина з `introHighlightFrom` («I find…») літера за літерою виділяється білим маркером (`GlyphTech.tint(..., "highlight")`).
+- Фріда (`sections/hero/Frida.tsx`): раз на кілька секунд біля неї друкується «Psst…», вона ворушиться; на наведенні/дотику — повідомлення (білі підкладки під літерами). Тексти — `content/hero.ts` → `frida`.
 - Шрифт DM Mono не має кирилиці — для українських літер у стеку `--font-mono` стоїть IBM Plex Mono (тільки кирилиця, `src/fonts`).
 - Графіка hero лежить у `src/assets/hero`, відео — у `public/hero`.
 

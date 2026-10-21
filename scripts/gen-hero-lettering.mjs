@@ -106,7 +106,16 @@ if (cur) pLines.push(cur);
 const pAsc = 0.992;
 const pDesc = 0.31;
 const pFirst = (pLine - (pAsc + pDesc) * pSize) / 2 + pAsc * pSize;
-const introGlyphs = pLines.flatMap((t, i) => line(dmMono, t, 0, pFirst + i * pLine, pSize, -0.02, true));
+// cell — «клітинка» літери в рядку разом із пробілом перед нею (для виділення маркером)
+const introGlyphs = pLines.flatMap((t, i) => {
+  const gs = line(dmMono, t, 0, pFirst + i * pLine, pSize, -0.02, true);
+  let prev = 0;
+  return gs.map((g) => {
+    const cell = [r(prev), i * pLine, g.next, (i + 1) * pLine];
+    prev = g.next;
+    return { ...g, cell };
+  });
+});
 const charW = (600 / 1000) * pSize - 0.02 * pSize;
 const introBox = { x: 0, y: 0, w: r(Math.max(...pLines.map((t) => t.length)) * charW), h: pLines.length * pLine };
 const introPad = 28;
@@ -123,6 +132,8 @@ export type Glyph = {
   box: [number, number, number, number];
   /** x, де починається наступна літера (для курсора друку) */
   next: number;
+  /** клітинка літери в рядку (x1, y1, x2, y2) — лише в абзаці, для виділення */
+  cell?: [number, number, number, number];
 };
 
 export const designerGlyphs: Glyph[] = ${JSON.stringify(designer)};
