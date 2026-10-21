@@ -5,7 +5,7 @@
  *  - primary:   рожева без обведення; заливка — білі напівпрозорі пікселі;
  *  - secondary: обведення нашим чорним (--color-ink-warm); заливка — рожеві пікселі.
  * Візерунок той самий, що в плямі курсора (PixelBlast): квадрати 4 px, розкидані матрицею Байєра 8×8.
- * На фронті хвилі пікселів рідко, позаду — густо, як край плями.
+ * На фронті хвилі пікселів рідко, позаду — густо, як край плями; у кінці зліва густіше, праворуч — шахівниця.
  * Кольори — токени з globals.css. При «менше руху» заливка з'являється одразу.
  */
 
@@ -22,7 +22,10 @@ type Props = {
 
 const CELL = 4; // розмір пікселя, px (як pixelSize у плямі курсора)
 const FRONT = 0.35; // ширина розмитого фронту хвилі (частка ширини кнопки)
-const DENSITY = 0.82; // наскільки густо заповнено позаду фронту
+// Кінцева густина: зліва густіше, праворуч рідше (як край плями курсора — від «майже суцільно» до шахівниці)
+const DENSITY_LEFT = 0.78;
+const DENSITY_RIGHT = 0.46;
+const SOFT = 0.07; // клітинки біля порогу малюються меншим квадратиком (як м'який край у PixelBlast)
 
 // Матриця Байєра 8×8 — та сама, що в шейдері PixelBlast
 const bayer2 = (x: number, y: number) => (Math.floor(x) / 2 + Math.floor(y) * Math.floor(y) * 0.75) % 1;
@@ -56,7 +59,7 @@ export function PixelButton({ href, variant, children, className = "", ...rest }
       const cs = getComputedStyle(link);
       return variant === "primary"
         ? { fill: cs.getPropertyValue("--color-paper").trim(), alpha: 0.5 }
-        : { fill: cs.getPropertyValue("--color-pink").trim(), alpha: 1 };
+        : { fill: cs.getPropertyValue("--color-pink").trim(), alpha: 0.6 }; // як прозорість плями курсора
     };
 
     const layout = () => {
@@ -86,10 +89,19 @@ export function PixelButton({ href, variant, children, className = "", ...rest }
       const head = progress * (1 + FRONT);
       for (let c = 0; c < cols; c++) {
         const behind = (head - c / Math.max(1, cols - 1)) / FRONT;
-        const density = Math.min(1, Math.max(0, behind)) * DENSITY;
+        const along = c / Math.max(1, cols - 1);
+        const density = Math.min(1, Math.max(0, behind)) * (DENSITY_LEFT + (DENSITY_RIGHT - DENSITY_LEFT) * along);
         if (density <= 0) continue;
         for (let r = 0; r < rows; r++) {
-          if (thresholds[r * cols + c] < density) ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+          const t = thresholds[r * cols + c];
+          if (t < density - SOFT) {
+            ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+          } else if (t < density) {
+            // на межі — маленький квадратик у центрі клітинки
+            const side = Math.max(1, Math.round(CELL * 0.5));
+            const o = (CELL - side) / 2;
+            ctx.fillRect(c * CELL + o, r * CELL + o, side, side);
+          }
         }
       }
     };
