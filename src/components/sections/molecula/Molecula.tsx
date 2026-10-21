@@ -16,7 +16,7 @@ import { BlotButton } from "@/components/ui/BlotButton";
 import { openContact } from "@/components/ui/ContactDialog";
 import { NotesRoach } from "./NotesRoach";
 import { PixelSeam } from "./PixelSeam";
-import { SCREENS_PER_CARD, useMoleculaReveal, useScrollSteps } from "./molecula.motion";
+import { sectionScreens, useMoleculaReveal, useScrollSteps } from "./molecula.motion";
 
 const u = (n: number) => `calc(${n} * var(--u))`;
 const fromCenter = (x: number, y: number): CSSProperties => ({
@@ -69,7 +69,7 @@ export function Molecula() {
   const sectionRef = useRef<HTMLElement>(null);
   const count = molecula.cards.length;
   const [step, request] = useScrollSteps(sectionRef, count);
-  useMoleculaReveal(sectionRef);
+  useMoleculaReveal(sectionRef, count);
 
   return (
     <section
@@ -78,13 +78,13 @@ export function Molecula() {
       aria-labelledby="molecula-heading"
       data-nav-theme="dark"
       className="relative bg-ink"
-      style={{ height: `calc(100svh + ${(count - 1) * SCREENS_PER_CARD * 100}svh)` }}
+      style={{ height: `${sectionScreens(count) * 100}svh` }}
     >
       <h2 id="molecula-heading" className="sr-only">
         {molecula.heading}
       </h2>
       <div className="sticky top-0 h-svh overflow-hidden [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/700)]">
-        {/* тло проявляється, коли секція повністю заїхала (molecula.motion → useMoleculaReveal) */}
+        {/* тло проявляється й зникає разом зі скролом, поки сцена стоїть (molecula.motion → useMoleculaReveal) */}
         <div data-mol="chalk" className="absolute inset-0 opacity-0">
           <ChalkField className="absolute inset-0" />
         </div>
