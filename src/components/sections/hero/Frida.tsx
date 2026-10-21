@@ -14,6 +14,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
 import roach from "@/assets/hero/roach.png";
+import { TypedNote, typedStagger } from "@/components/ui/TypedNote";
 
 export type FridaHandle = { start: () => void };
 
@@ -31,42 +32,6 @@ const TEXT_Y = ROACH.y + 6;
 const BUBBLE_W = 200; // вужче за абзац унизу (276)
 
 const PAUSE_SECONDS = 4; // скільки чекати між «Psst…»
-
-// затримка літери за її номером у тексті (обидва шари — підкладка й літера — з'являються разом)
-const byIndex = (step: number) => (_i: number, el: Element) => Number((el as HTMLElement).dataset.i) * step;
-
-// Друкований текст на білій підкладці. Два однакові шари: нижній — лише підкладки під літерами
-// (з «падінгом» через тінь-розтяжку, щоб не зсувати літери), верхній — самі літери.
-// Обидва друкуються синхронно: затримку кожної літери задає data-i.
-const textClass =
-  "text-u-12 tracking-[calc(-0.24*var(--u))] pointer-events-none absolute leading-[calc(16*var(--u))]";
-function Typed({ text, attr }: { text: string; attr: string }) {
-  const spans = (layer: "bg" | "fg") =>
-    Array.from(text).map((ch, i) => (
-      <span
-        key={i}
-        data-i={i}
-        {...{ [attr]: "" }}
-        className={
-          layer === "bg"
-            ? "bg-paper opacity-0 shadow-[0_0_0_calc(3*var(--u))_var(--color-paper)]"
-            : "opacity-0"
-        }
-      >
-        {ch}
-      </span>
-    ));
-  return (
-    <>
-      <p aria-hidden="true" className={`${textClass} text-transparent`} style={box(TEXT_X, TEXT_Y, BUBBLE_W)}>
-        {spans("bg")}
-      </p>
-      <p aria-hidden="true" className={`${textClass} text-ink`} style={box(TEXT_X, TEXT_Y, BUBBLE_W)}>
-        {spans("fg")}
-      </p>
-    </>
-  );
-}
 
 export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
   const root = useRef<HTMLDivElement>(null);
@@ -88,7 +53,7 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
       const loop = gsap.timeline({ paused: true, repeat: -1, repeatDelay: PAUSE_SECONDS });
       loop
         .set(teaser, { opacity: 0 })
-        .to(teaser, { opacity: 1, duration: 0.01, stagger: byIndex(0.14) })
+        .to(teaser, { opacity: 1, duration: 0.01, stagger: typedStagger(0.14) })
         .fromTo(
           body,
           { rotation: 0, y: 0 },
@@ -114,7 +79,7 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
         else {
           gsap.killTweensOf(message);
           gsap.set(message, { opacity: 0 });
-          gsap.to(message, { opacity: 1, duration: 0.01, stagger: byIndex(0.012) });
+          gsap.to(message, { opacity: 1, duration: 0.01, stagger: typedStagger(0.012) });
           gsap.fromTo(body, { rotation: -6 }, { rotation: 0, duration: 0.5, ease: "back.out(3)", transformOrigin: "50% 90%" });
         }
       });
@@ -134,9 +99,14 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
         if (!reduced) gsap.delayedCall(1.2, () => loop.play(0));
       };
 
-      trigger.addEventListener("pointerenter", show);
-      trigger.addEventListener("pointerleave", hide);
-      trigger.addEventListener("focus", show);
+      // наведення — лише мишею; на дотик відкриваємо/закриваємо кліком нижче
+      const onEnter = (e: PointerEvent) => e.pointerType === "mouse" && show();
+      const onLeave = (e: PointerEvent) => e.pointerType === "mouse" && hide();
+      trigger.addEventListener("pointerenter", onEnter);
+      trigger.addEventListener("pointerleave", onLeave);
+      // фокус з клавіатури відкриває; фокус від дотику/кліку — ні (тоді працює клік)
+      const onFocus = () => trigger.matches(":focus-visible") && show();
+      trigger.addEventListener("focus", onFocus);
       trigger.addEventListener("blur", hide);
       // на сенсорному екрані наведення немає — відкриваємо/закриваємо дотиком
       const onClick = (e: MouseEvent) => {
@@ -145,9 +115,9 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
       };
       trigger.addEventListener("click", onClick);
       return () => {
-        trigger.removeEventListener("pointerenter", show);
-        trigger.removeEventListener("pointerleave", hide);
-        trigger.removeEventListener("focus", show);
+        trigger.removeEventListener("pointerenter", onEnter);
+        trigger.removeEventListener("pointerleave", onLeave);
+        trigger.removeEventListener("focus", onFocus);
         trigger.removeEventListener("blur", hide);
         trigger.removeEventListener("click", onClick);
       };
@@ -174,8 +144,8 @@ export const Frida = forwardRef<FridaHandle>(function Frida(_, ref) {
       </div>
 
       {/* Текст — DM Mono 12 px, рядок 16 px, звичайним регістром, на білій підкладці */}
-      <Typed text={hero.frida.teaser} attr="data-teaser-char" />
-      <Typed text={hero.frida.message} attr="data-message-char" />
+      <TypedNote text={hero.frida.teaser} attr="data-teaser-char" style={box(TEXT_X, TEXT_Y, BUBBLE_W)} />
+      <TypedNote text={hero.frida.message} attr="data-message-char" style={box(TEXT_X, TEXT_Y, BUBBLE_W)} />
     </div>
   );
 });

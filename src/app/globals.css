@@ -29,6 +29,8 @@
   --color-lemon: #fefba1; /* OF VISUAL SENSES */
   --color-studio: #9f9f9f; /* тло під фото hero */
   --color-paper: #ffffff;
+  --color-cream: #faf5e9; /* картка Molecula */
+  --color-chalk: #b2b2ff; /* крейда на чорному тлі Molecula */
 
   /* Шрифти: змінні задає next/font у layout.tsx */
   --font-mono: var(--font-dm-mono), var(--font-plex-cyr), ui-monospace, monospace;

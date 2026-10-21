@@ -5,18 +5,20 @@ import { CursorPixels } from "@/components/effects/CursorPixels";
 import "./globals.css";
 
 const dmMono = localFont({
-  src: "../fonts/DMMono-Regular.woff2",
-  weight: "400",
-  style: "normal",
+  src: [
+    { path: "../fonts/DMMono-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/DMMono-Medium.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-dm-mono",
   display: "swap",
 });
 
 // DM Mono не має кирилиці — для українських літер у тому ж стилі беремо IBM Plex Mono (лише кирилиця)
 const plexCyrillic = localFont({
-  src: "../fonts/IBMPlexMono-Cyrillic.woff2",
-  weight: "400",
-  style: "normal",
+  src: [
+    { path: "../fonts/IBMPlexMono-Cyrillic.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/IBMPlexMono-Cyrillic-SemiBold.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-plex-cyr",
   display: "swap",
 });
