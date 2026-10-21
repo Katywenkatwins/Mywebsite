@@ -7,9 +7,10 @@ import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
 import { navigation } from "@/content/site";
 import { LetterSwap } from "@/components/ui/LetterSwap";
+import { PixelButton } from "@/components/ui/PixelButton";
 import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
-import { designerGlyphs, letteringArea, nameGlyphs, sensesGlyphs } from "./lettering";
-import { playHeroReveal, SENSES_TYPE_SECONDS } from "./hero.motion";
+import { designerGlyphs, introArea, introBox, introGlyphs, letteringArea, nameGlyphs, sensesGlyphs } from "./lettering";
+import { INTRO_TYPE_SECONDS, playHeroReveal, SENSES_TYPE_SECONDS } from "./hero.motion";
 
 import photo from "@/assets/hero/photo.png";
 import photoCutout from "@/assets/hero/photo-cutout.png";
@@ -23,7 +24,7 @@ gsap.registerPlugin(useGSAP);
  * Figma: «Look & Feel 8» (node 6373:2521), 1920×1080.
  * Усі числа — пікселі макета. Усередині hero одиниця --u = --s, тобто сцена вписується в екран цілком.
  * Шари знизу вгору: фото → відео → DESIGNER, OF VISUAL SENSES, ім'я → тарган → крапки → ти (вирізка)
- *                  → меню.
+ *                  → меню → абзац і кнопки (правий нижній кут).
  */
 const u = (n: number) => `calc(${n} * var(--u))`;
 const box = (left: number, top: number, width?: number, height?: number): CSSProperties => ({
@@ -58,6 +59,7 @@ export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const designerRef = useRef<GlyphTechHandle>(null);
   const sensesRef = useRef<GlyphTechHandle>(null);
+  const introRef = useRef<GlyphTechHandle>(null);
 
   useGSAP(
     () => {
@@ -69,7 +71,7 @@ export function Hero() {
       const reveal = (instant: boolean) => {
         if (revealed) return;
         revealed = true;
-        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current });
+        playHeroReveal(el, { instant, designer: designerRef.current, senses: sensesRef.current, intro: introRef.current });
       };
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -257,9 +259,53 @@ export function Hero() {
             </li>
           ))}
         </ul>
-        <p data-reveal="nav" className="opacity-0">
-          {hero.signature}
-        </p>
+      </div>
+
+      {/* 7. Правий нижній кут: для кого і як допомагаю + дві кнопки */}
+      <div className="absolute right-30 bottom-30 flex flex-col items-end gap-16 max-md:inset-x-[16px] max-md:bottom-[16px] max-md:items-stretch max-md:gap-[12px]">
+        <p className="sr-only">{hero.intro}</p>
+        {/* Абзац — контури DM Mono з ефектом TechText; полотно ширше за абзац, щоб влізли рамки й підписи */}
+        <div
+          aria-hidden="true"
+          className="relative max-md:!w-full"
+          style={{ width: u(introBox.w), aspectRatio: `${introBox.w} / ${introBox.h}` }}
+        >
+          <GlyphTech
+            ref={introRef}
+            glyphs={introGlyphs}
+            box={introArea}
+            fontSize={14}
+            fillVar="--color-ink"
+            dashVar="--color-pink"
+            accentVar="--color-pink"
+            introDuration={INTRO_TYPE_SECONDS}
+            className="absolute"
+            style={{
+              left: `${(introArea.x / introBox.w) * 100}%`,
+              top: `${(introArea.y / introBox.h) * 100}%`,
+              width: `${(introArea.w / introBox.w) * 100}%`,
+              height: `${(introArea.h / introBox.h) * 100}%`,
+            }}
+          />
+        </div>
+        <div className="text-u-14 tracking-[calc(-0.28*var(--u))] flex gap-8 leading-[normal] uppercase max-md:gap-[8px] max-md:text-[12px] max-md:tracking-[-0.02em]">
+          <PixelButton
+            data-reveal="nav"
+            href={hero.primaryCta.href}
+            variant="primary"
+            className="px-18 py-12 opacity-0 max-md:flex-1 max-md:px-[12px] max-md:py-[10px]"
+          >
+            {hero.primaryCta.label}
+          </PixelButton>
+          <PixelButton
+            data-reveal="nav"
+            href={hero.secondaryCta.href}
+            variant="secondary"
+            className="px-18 py-12 opacity-0 max-md:flex-1 max-md:px-[12px] max-md:py-[10px]"
+          >
+            {hero.secondaryCta.label}
+          </PixelButton>
+        </div>
       </div>
 
       <noscript>

@@ -9,6 +9,7 @@ export default function Home() {
       {navigation.map((item) => (
         <SectionStub key={item.id} id={item.id} title={item.label} />
       ))}
+      <SectionStub id="contact" title="Contact" />
     </main>
   );
 }

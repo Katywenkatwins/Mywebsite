@@ -3,6 +3,8 @@ import { DESIGNER_TYPE_SECONDS, type GlyphTechHandle } from "./GlyphTech";
 
 /** скільки триває друк OF VISUAL SENSES, с */
 export const SENSES_TYPE_SECONDS = 1;
+/** скільки триває друк абзацу в правому нижньому куті, с */
+export const INTRO_TYPE_SECONDS = 1.8;
 
 /*
  * Рух hero. Верстка — Hero.tsx, тут тільки анімація.
@@ -11,7 +13,8 @@ export const SENSES_TYPE_SECONDS = 1;
  *  2. «Kateryna Smiian» проявляється по літерах маскою зліва направо з м'яким краєм;
  *  3. DESIGNER друкується по літерах (рамка виділення біжить по літері);
  *  4. одразу за ним так само друкується OF VISUAL SENSES;
- *  5. тарган і меню.
+ *  5. тарган і меню, кнопки;
+ *  6. абзац у правому нижньому куті друкується (TechText).
  */
 
 type Options = {
@@ -19,9 +22,10 @@ type Options = {
   instant: boolean;
   designer: GlyphTechHandle | null;
   senses: GlyphTechHandle | null;
+  intro: GlyphTechHandle | null;
 };
 
-export function playHeroReveal(root: HTMLElement, { instant, designer, senses }: Options) {
+export function playHeroReveal(root: HTMLElement, { instant, designer, senses, intro }: Options) {
   const q = gsap.utils.selector(root);
   const video = q("[data-hero-video]");
   const nameWipes = q("[data-name-wipe]");
@@ -32,6 +36,7 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses }:
     gsap.set(nameWipes, { attr: { transform: "matrix(1 0 0 1 0 0)" } });
     designer?.showAll();
     senses?.showAll();
+    intro?.showAll();
     return null;
   }
 
@@ -82,6 +87,9 @@ export function playHeroReveal(root: HTMLElement, { instant, designer, senses }:
     { opacity: 1, yPercent: 0, duration: 0.6, stagger: 0.04 },
     sensesDone - 0.3,
   );
+
+  // 6. абзац у правому нижньому куті друкується, поки з'являється меню
+  tl.call(() => void intro?.play(), undefined, sensesDone);
 
   return tl;
 }
