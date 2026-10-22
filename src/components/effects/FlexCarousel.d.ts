@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 
 export type FlexCarouselItem = { src: string; alt?: string; title?: string; subtitle?: string };
 
+export type FlexCarouselApi = { goTo: (index: number) => void; close: () => boolean };
+
 export type FlexCarouselProps = {
   items?: FlexCarouselItem[];
   preset?: "liquid" | "ribbon" | string;
@@ -28,6 +30,10 @@ export type FlexCarouselProps = {
   captureWheel?: boolean;
   onChange?: (index: number) => void;
   onSelect?: (index: number) => void;
+  /** відкрили/закрили кейс у фокусі */
+  onFocusChange?: (open: boolean, index: number) => void;
+  /** керування ззовні: goTo(index), close() */
+  apiRef?: { current: FlexCarouselApi | null };
   className?: string;
   style?: CSSProperties;
 };

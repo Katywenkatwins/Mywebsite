@@ -3,13 +3,20 @@
 
 export const portfolio = {
   heading: "Portfolio",
-  // Порядок кейсів у галереї. image — ім'я файлу в src/assets/portfolio (без розширення)
+  // Порядок кейсів у галереї. image — ім'я файлу в src/assets/portfolio (без розширення),
+  // slug — адреса сторінки кейса: /portfolio/<slug>
   cases: [
-    { image: "6-senses", title: "6 Senses" },
-    { image: "boss-beauties", title: "Boss Beauties" },
-    { image: "cloud-stone-studio", title: "Cloud Stone Studio" },
-    { image: "lauren-martin-studio", title: "Lauren Martin Studio" },
+    { slug: "6-senses", image: "6-senses", title: "6 Senses" },
+    { slug: "boss-beauties", image: "boss-beauties", title: "Boss Beauties" },
+    { slug: "cloud-stone-studio", image: "cloud-stone-studio", title: "Cloud Stone Studio" },
+    { slug: "lauren-martin-studio", image: "lauren-martin-studio", title: "Lauren Martin Studio" },
   ],
+  // Кнопка під відкритим кейсом — веде на сторінку кейса
+  openProject: "Open project",
+  // Сторінка кейса (поки заглушка)
+  backToPortfolio: "Back to portfolio",
+  // TODO(Катя): сторінки кейсів ще без макета — поки помітний плейсхолдер
+  casePlaceholder: "[Placeholder] The case story will be here — there is no layout for case pages yet.",
   // підпис для скрінрідера до кожної обкладинки
   coverAlt: (title: string) => `${title} case cover`,
   galleryLabel: "Case gallery. Drag or use the arrow keys, click a cover to focus it.",
@@ -21,6 +28,8 @@ export const portfolio = {
 
   uk: {
     heading: "Портфоліо",
+    openProject: "Відкрити проєкт",
+    backToPortfolio: "Назад до портфоліо",
     galleryLabel: "Галерея кейсів. Тягни або гортай стрілками, клацни обкладинку, щоб розгорнути.",
     roach: {
       label: "Тарган із намистом",

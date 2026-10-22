@@ -252,6 +252,8 @@ const FlexCarousel = ({
   captureWheel = true,
   onChange,
   onSelect,
+  onFocusChange,
+  apiRef,
   className = '',
   style
 }) => {
@@ -259,7 +261,7 @@ const FlexCarousel = ({
   const settingsRef = useRef(null);
   const itemsRef = useRef(items);
   const engineRef = useRef(null);
-  const callbacksRef = useRef({ onChange, onSelect });
+  const callbacksRef = useRef({ onChange, onSelect, onFocusChange });
   const [active, setActive] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
@@ -272,7 +274,7 @@ const FlexCarousel = ({
 
   useEffect(() => {
     itemsRef.current = list;
-    callbacksRef.current = { onChange, onSelect };
+    callbacksRef.current = { onChange, onSelect, onFocusChange };
     settingsRef.current = {
       intro,
       cardHeight,
@@ -582,6 +584,7 @@ const FlexCarousel = ({
       focus.pending = -1;
       focus.target = 1;
       setFocusOpen(true);
+      callbacksRef.current.onFocusChange?.(true, index);
       dirty = true;
       start();
     };
@@ -591,6 +594,7 @@ const FlexCarousel = ({
       if (focus.target === 0) return false;
       focus.target = 0;
       setFocusOpen(false);
+      callbacksRef.current.onFocusChange?.(false, focus.index);
       dirty = true;
       start();
       return true;
@@ -1175,8 +1179,21 @@ const FlexCarousel = ({
         dirty = true;
         start();
       },
-      setItems
+      setItems,
+      // керування ззовні (секція гортає кейси скролом)
+      goTo: index => {
+        const s = settingsRef.current;
+        if (!s || !slots.length) return;
+        skipIntro();
+        closeFocus();
+        // крокуємо по порядку (вперед — праворуч, назад — ліворуч), а не найкоротшим шляхом по колу
+        const m = metrics(s);
+        const current = nearest(m, snapPoint(m, goal));
+        if (index !== current) step(m, index - current);
+      },
+      close: () => closeFocus()
     };
+    if (apiRef) apiRef.current = engineRef.current;
 
     resize();
     setItems(itemsRef.current);
@@ -1203,6 +1220,7 @@ const FlexCarousel = ({
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- apiRef стабільний ref
   }, []);
 
   const current = list[active] || list[0];

@@ -1,15 +1,32 @@
 "use client";
 
 /*
- * Рух секції Portfolio: коли секція повністю в екрані — вистрибує тарганка з намистом.
- * Якщо прокрутити назад так, що секція повністю зникла внизу, — ховається, і наступного разу з'явиться знову.
- * Галерея має власну появу (FlexCarousel, intro="rise") — стартує, коли потрапляє в екран.
+ * Рух секції Portfolio.
+ * Секція вища за екран: сцена «прилипає» лише тоді, коли секція повністю в екрані (верх дійшов до верху екрана).
+ * Поки сцена стоїть, скрол гортає кейси — по SCREENS_PER_CASE екрана на кейс; наприкінці ще HOLD_OUT екрана сцена стоїть
+ * на останньому кейсі, і лише тоді секція їде далі.
+ * Галерея з'являється (і грає свою появу) теж лише коли секція повністю в екрані; тоді ж вистрибує тарганка.
+ * Якщо прокрутити назад так, що секція повністю зникла внизу, — тарганка ховається, наступного разу з'явиться знову.
  */
 
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { gsap } from "gsap";
+import type { FlexCarouselApi } from "@/components/effects/FlexCarousel";
 
-export function useRoachReveal(sectionRef: RefObject<HTMLElement | null>) {
+export const SCREENS_PER_CASE = 0.5;
+export const HOLD_OUT = 0.3;
+/** висота секції в екранах */
+export const sectionScreens = (count: number) => 1 + (count - 1) * SCREENS_PER_CASE + HOLD_OUT;
+
+/** чи секція вже повністю заїжджала в екран (галерею монтуємо з цього моменту) + гортання кейсів скролом */
+export function usePortfolioScroll(
+  sectionRef: RefObject<HTMLElement | null>,
+  count: number,
+  apiRef: RefObject<FlexCarouselApi | null>,
+) {
+  const [arrived, setArrived] = useState(false);
+  const stepRef = useRef(-1);
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -17,11 +34,14 @@ export function useRoachReveal(sectionRef: RefObject<HTMLElement | null>) {
     const roach = el.querySelectorAll('[data-portfolio="roach"]');
     let shown = false;
     let raf = 0;
+
     const check = () => {
       raf = 0;
       const top = el.getBoundingClientRect().top;
+      // поява: секція повністю в екрані
       if (!shown && top <= 1) {
         shown = true;
+        setArrived(true);
         if (reduced) gsap.set(roach, { opacity: 1 });
         else
           gsap.fromTo(
@@ -33,6 +53,17 @@ export function useRoachReveal(sectionRef: RefObject<HTMLElement | null>) {
         shown = false;
         gsap.killTweensOf(roach);
         gsap.set(roach, { opacity: 0 });
+      }
+      // кейс за прогресом скролу прилиплої сцени
+      if (count < 2) return;
+      const pin = el.offsetHeight - window.innerHeight;
+      const length = (pin * (count - 1) * SCREENS_PER_CASE) / ((count - 1) * SCREENS_PER_CASE + HOLD_OUT);
+      const progress = Math.min(1, Math.max(0, -top / length));
+      const step = Math.round(progress * (count - 1));
+      const api = apiRef.current;
+      if (api && top <= 1 && step !== stepRef.current) {
+        stepRef.current = step;
+        api.goTo(step);
       }
     };
     const onScroll = () => {
@@ -46,5 +77,7 @@ export function useRoachReveal(sectionRef: RefObject<HTMLElement | null>) {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [sectionRef]);
+  }, [sectionRef, count, apiRef]);
+
+  return arrived;
 }

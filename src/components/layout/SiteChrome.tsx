@@ -77,6 +77,9 @@ export function SiteChrome() {
     };
     // активна секція — остання, чий верх уже вище середини екрана
     const activeIndex = () => {
+      // на сторінці кейса (/portfolio/<slug>) активний пункт — Portfolio
+      const page = sectionIds.indexOf(window.location.pathname.split("/")[1]);
+      if (!document.getElementById("top") && page > 0) return page;
       let active = 0;
       sectionIds.forEach((id, i) => {
         const s = document.getElementById(id);
@@ -121,14 +124,14 @@ export function SiteChrome() {
         className="pointer-events-none fixed inset-0 z-50 text-u-14 leading-[calc(18*var(--u))] tracking-[calc(-0.28*var(--u))] text-ink uppercase [--spacing:var(--u)] [--u:var(--s)] max-md:text-[11px] max-md:tracking-[-0.02em] max-md:[--u:calc(var(--page-w,100vw)/1920)]"
       >
         {/* Угорі ліворуч: підпис */}
-        <a
-          href="#top"
+        <Link
+          href="/#top"
           data-chrome-item
           data-reveal="chrome"
           className={`${item} ${trigger} absolute top-30 left-30 max-md:top-[16px] max-md:left-[16px]`}
         >
           <LetterSwap text={chrome.signature} />
-        </a>
+        </Link>
 
         {/* Угорі праворуч: зв'язок і мови — стовпчиком, по правому краю */}
         <div className="absolute top-30 right-30 flex flex-col items-end gap-2 max-md:top-[16px] max-md:right-[16px] max-md:flex-row max-md:gap-[8px]">
@@ -203,9 +206,9 @@ export function SiteChrome() {
                 data-reveal="chrome"
                 className={`${item} group h-18`}
               >
-                <a href="#top" className="flex h-full items-center outline-none" aria-label={chrome.heroLabel}>
+                <Link href="/#top" className="flex h-full items-center outline-none" aria-label={chrome.heroLabel}>
                   <Dot />
-                </a>
+                </Link>
               </li>
               {navigation.map((nav, i) => (
                 <li
@@ -216,9 +219,9 @@ export function SiteChrome() {
                   className={`${item} group flex items-center gap-8 data-[active=true]:text-pink!`}
                 >
                   <Dot />
-                  <a href={`#${nav.id}`} className={trigger}>
+                  <Link href={`/#${nav.id}`} className={trigger}>
                     <BracketLabel label={nav.label} after={menuWidth - nav.label.length} />
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

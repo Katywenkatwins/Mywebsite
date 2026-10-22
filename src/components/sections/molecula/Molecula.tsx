@@ -35,7 +35,7 @@ const cardColors = [
   { bg: "bg-lemon", text: "text-ink", rule: "var(--color-pink)" },
   { bg: "bg-chalk", text: "text-ink", rule: "var(--color-paper)" },
   { bg: "bg-paper", text: "text-ink", rule: "var(--color-pink)" },
-  { bg: "bg-studio", text: "text-ink", rule: "var(--color-lemon)" },
+  { bg: "bg-studio", text: "text-ink", rule: "var(--color-paper)" },
 ];
 
 function Card({ card, index }: { card: MoleculaCard; index: number }) {
