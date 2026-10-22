@@ -19,6 +19,8 @@ export const SCREENS_PER_CARD = 0.6;
 /** скільки екрана скролу тло проявляється (на вході) і зникає (на виході), поки сцена стоїть */
 export const HOLD_IN = 0.5;
 export const HOLD_OUT = 0.5;
+/** наскільки видно крейдове тло, коли воно повністю проявилось (0..1) — приглушене, щоб не відволікало від карток */
+export const CHALK_OPACITY = 0.4;
 /** висота секції у svh для count карток */
 export const sectionScreens = (count: number) => 1 + HOLD_IN + (count - 1) * SCREENS_PER_CARD + HOLD_OUT;
 
@@ -120,7 +122,7 @@ export function useMoleculaReveal(sectionRef: RefObject<HTMLElement | null>, cou
         const s = window.scrollY - g.top; // скільки проскролено всередині прилиплої сцени
         const fadeIn = Math.min(1, Math.max(0, s / (HOLD_IN * g.unit)));
         const fadeOut = Math.min(1, Math.max(0, (g.length - s) / (HOLD_OUT * g.unit)));
-        gsap.set(chalk, { opacity: Math.min(fadeIn, fadeOut) });
+        gsap.set(chalk, { opacity: Math.min(fadeIn, fadeOut) * CHALK_OPACITY });
 
         if (!shown && fadeIn >= 1) {
           shown = true;
