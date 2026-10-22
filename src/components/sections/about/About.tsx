@@ -10,6 +10,7 @@
 import { useCallback, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { about } from "@/content/about";
+import { contacts } from "@/content/site";
 import { LuminousText, type LuminousHandle } from "@/components/effects/LuminousText";
 import { RoachNote } from "@/components/ui/RoachNote";
 import { aboutBox, aboutGlyphs, aboutLastLineEnd } from "./lettering";
@@ -82,9 +83,13 @@ export function About() {
           data-about="icons"
           className="absolute right-30 bottom-30 z-20 flex gap-22 text-cream opacity-0 max-md:right-[16px] max-md:bottom-[16px] max-md:gap-[12px]"
         >
-          {about.contacts.map((c) => (
+          {about.contactIcons.map((id) => contacts.find((c) => c.id === id)!).map((c) => (
             <li key={c.id}>
-              <a href={c.href} aria-label={c.label} className="block size-48 outline-none focus-visible:outline-2 focus-visible:outline-cream max-md:size-[28px]">
+              <a
+                href={c.href}
+                aria-label={c.label}
+                {...(c.href.startsWith("http") && { target: "_blank", rel: "noopener noreferrer" })}
+                className="block size-48 outline-none focus-visible:outline-2 focus-visible:outline-cream max-md:size-[28px]">
                 {shown && (
                   <svg
                     viewBox="0 0 24 24"

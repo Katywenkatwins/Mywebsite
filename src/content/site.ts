@@ -15,6 +15,15 @@ export const navigation = [
   { id: "testimonials", label: "Testimonials" },
 ] as const;
 
+// Контакти — одні на весь сайт (іконки в About, вікно «Get in touch»)
+export const contacts = [
+  { id: "phone", label: "Phone", value: "+380 66 229 32 67", href: "tel:+380662293267" },
+  { id: "email", label: "Email", value: "Katerynasmiian@outlook.com", href: "mailto:Katerynasmiian@outlook.com" },
+  { id: "telegram", label: "Telegram", value: "@Kate_Smijan", href: "https://t.me/Kate_Smijan" },
+  { id: "instagram", label: "Instagram", value: "@kateryna_smiian", href: "https://www.instagram.com/kateryna_smiian/" },
+  { id: "whatsapp", label: "WhatsApp", value: "WhatsApp", href: "https://wa.me/qr/JG426JCHX46FF1" },
+] as const;
+
 // Фіксовані елементи по всьому сайту: правий верхній кут
 export const chrome = {
   // підпис угорі ліворуч — посилання нагору сторінки

@@ -27,6 +27,8 @@ const plexCyrillic = localFont({
 export const metadata: Metadata = {
   title: site.title,
   description: site.description,
+  // Проміжна версія: не показуємо пошуковикам. Коли сайт буде готовий — прибрати (і robots.ts теж).
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -41,7 +43,7 @@ const pageSizeScript = `(function(){var r=document.documentElement;function s(){
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="uk" className={`${dmMono.variable} ${plexCyrillic.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${dmMono.variable} ${plexCyrillic.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: pageSizeScript }} />
       </head>

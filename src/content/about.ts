@@ -17,15 +17,9 @@ export const about = {
   },
   // Підказка до тексту з підсвіткою
   lightHint: "Click the text to turn the lights on",
-  // Іконки контактів праворуч унизу.
-  // TODO(Катя): дай справжні посилання — поки «#» (плейсхолдер).
-  contacts: [
-    { id: "phone", label: "Phone", href: "#" },
-    { id: "instagram", label: "Instagram", href: "#" },
-    { id: "telegram", label: "Telegram", href: "#" },
-    { id: "linkedin", label: "LinkedIn", href: "#" },
-    { id: "email", label: "Email", href: "#" },
-  ],
+  // Іконки контактів праворуч унизу — порядок як у Figma; самі посилання — content/site.ts → contacts.
+  // У Figma була LinkedIn — посилання на нього немає, тож на її місці WhatsApp.
+  contactIcons: ["phone", "instagram", "telegram", "whatsapp", "email"],
 
   uk: {
     statement: "А ще маю команду тарганчиків у своїй голові, які допомагають мені креативити та тримати все в порядку",
