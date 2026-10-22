@@ -6,20 +6,25 @@ export const site = {
   description: "Дизайн, за яким вас упізнають без логотипа.",
 };
 
-// Пункти меню в hero (як у макеті Figma). id — якір секції на сторінці.
+// Пункти меню (порядок — як секції на сторінці, за Figma «Look & Feel 12»). id — якір секції.
 export const navigation = [
   { id: "molecula", label: "Molecula" },
-  { id: "cases", label: "Cases" },
-  { id: "testimonials", label: "Testimonials" },
-  { id: "services", label: "Services" },
   { id: "about", label: "About" },
+  { id: "cases", label: "Cases" },
+  { id: "services", label: "Services" },
+  { id: "testimonials", label: "Testimonials" },
 ] as const;
 
 // Фіксовані елементи по всьому сайту: правий верхній кут
 export const chrome = {
+  // підпис угорі ліворуч — посилання нагору сторінки
+  signature: "kateryna smiian",
   contact: "Get in touch",
   contactClose: "Close",
   menuLabel: "Main menu",
+  // підказка для скрінрідера до прогрес-бару біля меню
+  progressLabel: "Page sections",
+  heroLabel: "Top",
   languagesLabel: "Language",
   // code — що на кнопці; current — поточна мова сайту; soon — версії ще немає (показуємо, але не перемикаємо)
   languages: [

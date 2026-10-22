@@ -14,7 +14,8 @@ import { ChalkField } from "@/components/effects/ChalkField";
 import { CardStack } from "@/components/ui/CardStack";
 import { BlotButton } from "@/components/ui/BlotButton";
 import { openContact } from "@/components/ui/ContactDialog";
-import { NotesRoach } from "./NotesRoach";
+import { RoachNote } from "@/components/ui/RoachNote";
+import roachNotes from "@/assets/molecula/roach-notes.png";
 import { PixelSeam } from "./PixelSeam";
 import { sectionScreens, useMoleculaReveal, useScrollSteps } from "./molecula.motion";
 
@@ -107,7 +108,11 @@ export function Molecula() {
           </p>
 
           {/* тарган — біля лівого нижнього кута картки */}
-          <NotesRoach
+          <RoachNote
+            image={roachNotes}
+            label={molecula.roach.label}
+            message={molecula.roach.message}
+            revealAttr={{ "data-mol": "roach" }}
             className="-left-153 top-235 h-255 w-189 max-md:top-300 max-md:left-470 max-md:h-204 max-md:w-151"
             noteClassName="-left-363 top-275 w-200 max-md:-top-150 max-md:left-300 max-md:w-380"
           />
@@ -115,7 +120,8 @@ export function Molecula() {
 
         <div data-mol="cta" className="absolute -translate-x-1/2 opacity-0" style={fromCenter(CARD.x + CARD.w / 2, 812)}>
           <BlotButton
-            className="px-18 py-12 text-u-14 uppercase tracking-[calc(-0.28*var(--u))] max-md:px-[14px] max-md:py-[10px] max-md:text-[12px]"
+            variant="outline"
+            className="bg-ink text-paper [text-shadow:0_0_2px_var(--color-ink),0_0_6px_var(--color-ink)] px-18 py-12 text-u-14 uppercase tracking-[calc(-0.28*var(--u))] max-md:px-[14px] max-md:py-[10px] max-md:text-[12px]"
             aria-haspopup="dialog"
             onClick={openContact}
           >

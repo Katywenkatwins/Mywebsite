@@ -1,19 +1,25 @@
 "use client";
 
 /*
- * Мінімалістична прямокутна кнопка з піксельними рожевими плямами на тлі.
- * Плями — той самий піксельний візерунок, що в курсора й PixelButton (квадрати 4 px за матрицею Байєра 8×8),
+ * Кнопка сайту (усі кнопки — ця): прямокутна, мінімалістична, з анімованими піксельними плямами на тлі.
+ * Плями — той самий піксельний візерунок, що в курсора (квадрати 4 px за матрицею Байєра 8×8),
  * тільки густина задається повільним «шумом», тож пікселі збираються в плями, які ледь помітно перетікають.
- * На наведенні/фокусі плями розростаються. Кольори — токени. При «менше руху» плями стоять.
+ * На наведенні/фокусі плями розростаються. При «менше руху» плями стоять.
+ *  - outline: без заливки, з обведенням кольору тексту — плями рожеві, непрозорі;
+ *  - filled:  рожева заливка — плями білі, напівпрозорі.
+ * Посилання (href) або кнопка (onClick). Кольори — токени.
  */
 
-import { useEffect, useRef, type ButtonHTMLAttributes } from "react";
+import { useEffect, useRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 const CELL = 4; // розмір пікселя, px
 const BLOB = 22; // розмір плями, px
 const BASE = 0.34; // скільки тла вкрито плямами в спокої (0..1, умовно)
 const HOVER = 0.62; // на наведенні
-const ALPHA = 0.6;
+const LOOK = {
+  outline: { blot: "--color-pink", alpha: 1, className: "border border-current" },
+  filled: { blot: "--color-paper", alpha: 0.5, className: "bg-pink text-ink-warm" },
+} as const;
 const FPS = 24;
 
 const bayer2 = (x: number, y: number) => (Math.floor(x) / 2 + Math.floor(y) * Math.floor(y) * 0.75) % 1;
@@ -37,17 +43,24 @@ const noise = (x: number, y: number) => {
   return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf;
 };
 
-export function BlotButton({ children, className = "", ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  const btnRef = useRef<HTMLButtonElement>(null);
+type Common = { variant: keyof typeof LOOK; children: ReactNode; className?: string };
+type Props =
+  | (Common & { href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "className" | "children">)
+  | (Common & { href?: undefined } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children">);
+
+export function BlotButton(props: Props) {
+  const { variant, children, className = "", ...rest } = props;
+  const rootRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const btn = btnRef.current;
+    const btn = rootRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!btn || !canvas || !ctx) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const pink = getComputedStyle(btn).getPropertyValue("--color-pink").trim();
+    const { blot, alpha } = LOOK[variant];
+    const color = getComputedStyle(btn).getPropertyValue(blot).trim();
 
     let w = 0;
     let h = 0;
@@ -63,8 +76,8 @@ export function BlotButton({ children, className = "", ...rest }: ButtonHTMLAttr
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = pink;
-      ctx.globalAlpha = ALPHA;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
       const cols = Math.ceil(w / CELL);
       const rows = Math.ceil(h / CELL);
       for (let r = 0; r < rows; r++) {
@@ -138,17 +151,27 @@ export function BlotButton({ children, className = "", ...rest }: ButtonHTMLAttr
       btn.removeEventListener("focus", enter);
       btn.removeEventListener("blur", leave);
     };
-  }, []);
+  }, [variant]);
 
-  return (
-    <button
-      ref={btnRef}
-      type="button"
-      {...rest}
-      className={`relative inline-flex items-center justify-center overflow-hidden border border-paper bg-ink text-paper outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper ${className}`}
-    >
+  const cls = `relative inline-flex items-center justify-center overflow-hidden outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current ${LOOK[variant].className} ${className}`;
+  const inner = (
+    <>
       <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" />
-      <span className="relative [text-shadow:0_0_2px_var(--color-ink),0_0_6px_var(--color-ink)]">{children}</span>
+      <span className="relative">{children}</span>
+    </>
+  );
+  if (props.href !== undefined) {
+    const anchor = rest as AnchorHTMLAttributes<HTMLAnchorElement>;
+    return (
+      <a ref={rootRef as React.Ref<HTMLAnchorElement>} {...anchor} className={cls}>
+        {inner}
+      </a>
+    );
+  }
+  const button = rest as ButtonHTMLAttributes<HTMLButtonElement>;
+  return (
+    <button ref={rootRef as React.Ref<HTMLButtonElement>} type="button" {...button} className={cls}>
+      {inner}
     </button>
   );
 }

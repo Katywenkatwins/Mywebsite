@@ -1,27 +1,37 @@
 "use client";
 
 /*
- * Тарган із блокнотом біля карток Molecula. На наведенні (фокусі, дотику) поруч друкується його фраза —
+ * Тарган-провідник із фразою: на наведенні (фокусі з клавіатури, дотику) поруч друкується його фраза —
  * DM Mono 12 px на білій підкладці, як у Фріди в hero; сам тарган коротко киває.
- * Текст — content/molecula.ts → roach. Позиції — в Molecula.tsx (класи left/top з одиницею --u).
+ * Використовується в Molecula (тарган із блокнотом) і About (тарган із німбом).
+ * Позиції задає власник класами left/top/w/h з одиницею --u. Для анімації появи власник передає revealAttr
+ * (атрибут на тарганові) — тарган стартує прозорим, проявляє його власник.
  */
 
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { molecula } from "@/content/molecula";
+import type { StaticImageData } from "next/image";
 import { TypedNote, typedStagger } from "@/components/ui/TypedNote";
-import roach from "@/assets/molecula/roach-notes.png";
 
 type Props = {
+  image: StaticImageData;
+  /** хто це — для скрінрідера */
+  label: string;
+  message: string;
   /** позиція і розмір таргана */
   className: string;
   /** позиція і ширина фрази */
   noteClassName: string;
+  /** атрибут для анімації появи, напр. { "data-mol": "roach" } */
+  revealAttr?: Record<string, string>;
+  /** позиція, якщо вона рахується в коді (замість класів) */
+  style?: CSSProperties;
+  noteStyle?: CSSProperties;
 };
 
-export function NotesRoach({ className, noteClassName }: Props) {
+export function RoachNote({ image, label, message, className, noteClassName, revealAttr, style, noteStyle }: Props) {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -89,20 +99,21 @@ export function NotesRoach({ className, noteClassName }: Props) {
     <div ref={root} className="contents">
       <div
         data-roach
-        data-mol="roach"
+        {...revealAttr}
         role="button"
         tabIndex={0}
-        aria-label={`${molecula.roach.label}: ${molecula.roach.message}`}
+        aria-label={`${label}: ${message}`}
         aria-expanded="false"
+        style={style}
         className={`absolute z-20 opacity-0 outline-none focus-visible:outline-2 focus-visible:outline-paper ${className}`}
       >
         <div data-roach-body className="size-full">
-          <Image src={roach} alt="" sizes="(max-width: 767px) 30vw, 15vw" className="block size-full" draggable={false} />
+          <Image src={image} alt="" sizes="(max-width: 767px) 30vw, 15vw" className="block size-full" draggable={false} />
         </div>
       </div>
-      <div className={`pointer-events-none absolute z-20 ${noteClassName}`}>
+      <div className={`pointer-events-none absolute z-20 ${noteClassName}`} style={noteStyle}>
         <TypedNote
-          text={molecula.roach.message}
+          text={message}
           attr="data-roach-char"
           style={{ left: 0, top: 0, width: "100%" }}
           className="max-md:text-[12px] max-md:leading-[16px] max-md:tracking-[-0.24px]"

@@ -5,8 +5,7 @@ import Image from "next/image";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { hero } from "@/content/hero";
-import { LetterSwap } from "@/components/ui/LetterSwap";
-import { PixelButton } from "@/components/ui/PixelButton";
+import { BlotButton } from "@/components/ui/BlotButton";
 import { GlyphTech, type GlyphTechHandle } from "./GlyphTech";
 import { Frida, type FridaHandle } from "./Frida";
 import { designerGlyphs, introArea, introBox, introGlyphs, letteringArea, nameGlyphs, sensesGlyphs } from "./lettering";
@@ -218,12 +217,7 @@ export function Hero() {
       {/* 5. Ти — над написами й фактурою (вирізана фігура з того ж фото) */}
       <Image src={photoCutout} alt="" sizes="100vw" data-reveal="cutout" className={`${fullBleed} opacity-0`} />
 
-      {/* 6. Підпис угорі ліворуч. Меню, «get in touch» і мови закріплені в екрані на всьому сайті — layout/SiteChrome */}
-      <header className="pointer-events-none text-u-14 tracking-[calc(-0.28*var(--u))] absolute top-30 left-30 leading-[normal] text-ink uppercase max-md:top-[16px] max-md:left-[16px] max-md:text-[11px] max-md:tracking-[-0.02em]">
-        <a data-reveal="nav" href="#top" className="letter-swap-trigger pointer-events-auto opacity-0">
-          <LetterSwap text={hero.signature} />
-        </a>
-      </header>
+      {/* 6. Підпис, меню з прогрес-баром, «get in touch» і мови закріплені в екрані на всьому сайті — layout/SiteChrome */}
 
       {/* 7. Правий нижній кут: для кого і як допомагаю + дві кнопки */}
       <div className="absolute right-30 bottom-30 flex flex-col items-start gap-16 max-md:inset-x-[16px] max-md:bottom-[16px] max-md:items-stretch max-md:gap-[12px]">
@@ -254,22 +248,22 @@ export function Hero() {
           />
         </div>
         <div className="text-u-14 tracking-[calc(-0.28*var(--u))] flex gap-8 leading-[normal] uppercase max-md:gap-[8px] max-md:text-[12px] max-md:tracking-[-0.02em]">
-          <PixelButton
+          <BlotButton
             data-reveal="nav"
             href={hero.primaryCta.href}
-            variant="primary"
+            variant="filled"
             className="px-18 py-12 opacity-0 max-md:flex-1 max-md:px-[12px] max-md:py-[10px]"
           >
             {hero.primaryCta.label}
-          </PixelButton>
-          <PixelButton
+          </BlotButton>
+          <BlotButton
             data-reveal="nav"
             href={hero.secondaryCta.href}
-            variant="secondary"
-            className="px-18 py-12 opacity-0 max-md:flex-1 max-md:px-[12px] max-md:py-[10px]"
+            variant="outline"
+            className="text-ink-warm px-18 py-12 opacity-0 max-md:flex-1 max-md:px-[12px] max-md:py-[10px]"
           >
             {hero.secondaryCta.label}
-          </PixelButton>
+          </BlotButton>
         </div>
       </div>
 
