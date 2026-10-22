@@ -10,7 +10,7 @@ export const site = {
 export const navigation = [
   { id: "molecula", label: "Molecula" },
   { id: "about", label: "About" },
-  { id: "cases", label: "Cases" },
+  { id: "portfolio", label: "Portfolio" },
   { id: "services", label: "Services" },
   { id: "testimonials", label: "Testimonials" },
 ] as const;
