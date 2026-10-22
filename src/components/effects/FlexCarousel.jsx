@@ -253,6 +253,7 @@ const FlexCarousel = ({
   onChange,
   onSelect,
   onFocusChange,
+  onUnsupported,
   apiRef,
   className = '',
   style
@@ -261,7 +262,7 @@ const FlexCarousel = ({
   const settingsRef = useRef(null);
   const itemsRef = useRef(items);
   const engineRef = useRef(null);
-  const callbacksRef = useRef({ onChange, onSelect, onFocusChange });
+  const callbacksRef = useRef({ onChange, onSelect, onFocusChange, onUnsupported });
   const [active, setActive] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
@@ -274,7 +275,7 @@ const FlexCarousel = ({
 
   useEffect(() => {
     itemsRef.current = list;
-    callbacksRef.current = { onChange, onSelect, onFocusChange };
+    callbacksRef.current = { onChange, onSelect, onFocusChange, onUnsupported };
     settingsRef.current = {
       intro,
       cardHeight,
@@ -308,16 +309,24 @@ const FlexCarousel = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
-    const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      depth: false
-    });
+    // без WebGL 2 галерея не працює — кажемо власнику, щоб показав запасний варіант (а не валимо сторінку)
+    let renderer;
+    try {
+      renderer = new Renderer({
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        depth: false
+      });
+    } catch {
+      callbacksRef.current.onUnsupported?.();
+      return undefined;
+    }
     const gl = renderer.gl;
-    if (!renderer.isWebgl2) {
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+    if (!gl || !renderer.isWebgl2) {
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      callbacksRef.current.onUnsupported?.();
       return undefined;
     }
     gl.clearColor(0, 0, 0, 0);

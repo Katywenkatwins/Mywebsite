@@ -32,6 +32,8 @@ export type FlexCarouselProps = {
   onSelect?: (index: number) => void;
   /** відкрили/закрили кейс у фокусі */
   onFocusChange?: (open: boolean, index: number) => void;
+  /** браузер без WebGL 2 — показати запасний варіант */
+  onUnsupported?: () => void;
   /** керування ззовні: goTo(index), close() */
   apiRef?: { current: FlexCarouselApi | null };
   className?: string;

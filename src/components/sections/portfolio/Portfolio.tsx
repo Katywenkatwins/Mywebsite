@@ -10,6 +10,7 @@
 
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { portfolio } from "@/content/portfolio";
 import { RoachNote } from "@/components/ui/RoachNote";
 import { BlotButton } from "@/components/ui/BlotButton";
@@ -34,6 +35,8 @@ export function Portfolio() {
   // відкритий кейс (клік по обкладинці) — під ним кнопка «Open project»
   const [opened, setOpened] = useState<number | null>(null);
   const openedCase = opened === null ? null : portfolio.cases[opened];
+  // браузер без WebGL — замість галереї прості обкладинки з посиланнями
+  const [noWebgl, setNoWebgl] = useState(false);
 
   return (
     <section
@@ -58,8 +61,21 @@ export function Portfolio() {
 
       <div className="sticky top-0 h-svh overflow-hidden [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/1920)]">
         <div className="absolute inset-0" aria-label={portfolio.galleryLabel} role="group">
-          {arrived && (
+          {arrived && noWebgl && (
+            <ul className="flex size-full items-center justify-center gap-24 px-120">
+              {portfolio.cases.map((c) => (
+                <li key={c.slug} className="w-360">
+                  <a href={`/portfolio/${c.slug}`} className="block text-center">
+                    <Image src={covers[c.image]} alt={portfolio.coverAlt(c.title)} sizes="20vw" className="h-auto w-full" />
+                    <span className="mt-12 block text-u-15">{c.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          {arrived && !noWebgl && (
             <FlexCarousel
+              onUnsupported={() => setNoWebgl(true)}
               items={items}
               intro="rise"
               cardHeight={0.5}
