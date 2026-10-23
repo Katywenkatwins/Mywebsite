@@ -6,14 +6,19 @@ export const site = {
   description: "Дизайн, за яким вас упізнають без логотипа.",
 };
 
-// Пункти меню (порядок — як секції на сторінці, за Figma «Look & Feel 12»). id — якір секції.
-export const navigation = [
+// Секції головної (порядок — як на сторінці, за Figma «Look & Feel 12»). id — якір секції.
+// hidden: true — секцію тимчасово сховано (немає ні на сторінці, ні в меню).
+export const sections = [
   { id: "molecula", label: "Molecula" },
   { id: "about", label: "About" },
   { id: "portfolio", label: "Portfolio" },
   { id: "services", label: "Services" },
-  { id: "testimonials", label: "Testimonials" },
+  { id: "testimonials", label: "Testimonials", hidden: true },
+  { id: "contact", label: "Contact" },
 ] as const;
+
+// Пункти меню — видимі секції
+export const navigation = sections.filter((s) => !("hidden" in s && s.hidden));
 
 // Контакти — одні на весь сайт (іконки в About, вікно «Get in touch»)
 export const contacts = [
