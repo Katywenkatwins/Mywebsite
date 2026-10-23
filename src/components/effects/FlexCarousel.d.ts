@@ -36,6 +36,8 @@ export type FlexCarouselProps = {
   onUnsupported?: () => void;
   /** керування ззовні: goTo(index), close() */
   apiRef?: { current: FlexCarouselApi | null };
+  /** елемент, якому теж писати --flex-carousel-lift (на скільки збільшена картка у фокусі) — щоб ставити щось під підписом */
+  liftTargetRef?: { current: HTMLElement | null };
   className?: string;
   style?: CSSProperties;
 };

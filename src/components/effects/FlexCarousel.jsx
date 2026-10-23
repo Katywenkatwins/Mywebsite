@@ -255,6 +255,7 @@ const FlexCarousel = ({
   onFocusChange,
   onUnsupported,
   apiRef,
+  liftTargetRef,
   className = '',
   style
 }) => {
@@ -824,6 +825,7 @@ const FlexCarousel = ({
       if (Math.abs(nextLift - lift) > 0.0005) {
         lift = nextLift;
         container.style.setProperty('--flex-carousel-lift', lift.toFixed(4));
+        liftTargetRef?.current?.style.setProperty('--flex-carousel-lift', lift.toFixed(4));
       }
 
       const effects = introEffects();

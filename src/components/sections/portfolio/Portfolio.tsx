@@ -32,6 +32,7 @@ const ROACH = { x: 1720, y: 811, w: 156.465, h: 235.8 };
 export function Portfolio() {
   const sectionRef = useRef<HTMLElement>(null);
   const apiRef = useRef<FlexCarouselApi | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const arrived = usePortfolioScroll(sectionRef, count, apiRef);
   // відкритий кейс (клік по обкладинці) — під ним кнопка «Open project»
   const [opened, setOpened] = useState<number | null>(null);
@@ -60,7 +61,7 @@ export function Portfolio() {
         ))}
       </ul>
 
-      <div className="sticky top-0 h-svh overflow-hidden [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/1920)]">
+      <div ref={stageRef} className="sticky top-0 h-svh overflow-hidden [--spacing:var(--u)] [--u:var(--s)] max-md:[--u:calc(var(--page-w,100vw)/1920)]">
         <div className="absolute inset-0" aria-label={portfolio.galleryLabel} role="group">
           {arrived && noWebgl && (
             <ul className="flex size-full items-center justify-center gap-24 px-120">
@@ -83,14 +84,17 @@ export function Portfolio() {
               gap={24}
               captureWheel={false}
               apiRef={apiRef}
+              liftTargetRef={stageRef}
               onFocusChange={(open, index) => setOpened(open ? index : null)}
             />
           )}
         </div>
 
-        {/* кнопка під відкритим кейсом */}
+        {/* кнопка під відкритим кейсом — під назвою кейсу: та сама точка, що й підпис галереї
+            (низ картки: 50% + 25% × збільшення, підпис на 22 px нижче, рядок назви ≈ 20 px), але не нижче краю екрана */}
         <div
-          className={`absolute bottom-120 left-1/2 z-20 -translate-x-1/2 transition-[opacity,translate] duration-500 ${
+          style={{ top: "min(calc(50% + 25% * var(--flex-carousel-lift, 1) + 58px), calc(100% - 56px))" }}
+          className={`absolute left-1/2 z-20 -translate-x-1/2 transition-[opacity,translate] duration-500 ${
             openedCase ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-16 opacity-0"
           }`}
           aria-hidden={openedCase ? undefined : true}
