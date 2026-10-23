@@ -41,11 +41,28 @@ export const chrome = {
     { code: "EN", name: "English", current: true },
   ],
   soon: "coming soon",
+  // Форма у вікні «Get in touch». Поки без сервера: «Send» відкриває лист на Email з контактів, уже заповнений
+  form: {
+    service: "Service",
+    name: "Your name",
+    reply: "Email or Telegram",
+    message: "Message",
+    send: "Send",
+    or: "Or write directly:",
+  },
   uk: {
     contact: "Зв’язатися",
     contactClose: "Закрити",
     menuLabel: "Головне меню",
     languagesLabel: "Мова",
     soon: "скоро",
+    form: {
+      service: "Послуга",
+      name: "Ваше ім’я",
+      reply: "Email або Telegram",
+      message: "Повідомлення",
+      send: "Надіслати",
+      or: "Або напишіть напряму:",
+    },
   },
 };

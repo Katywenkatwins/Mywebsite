@@ -2,7 +2,7 @@
 
 /*
  * Рух секції Services: коли секція повністю в екрані — проявляється заголовок, картки «роздаються» віялом
- * з-під центру (по черзі), вистрибує тарган за кермом.
+ * з-під центру (по черзі), з'являється кнопка, вистрибує тарган за кермом.
  * Якщо прокрутити назад так, що секція повністю зникла внизу, — усе ховається, наступного разу поява повториться.
  * При «менше руху» — одразу фінальний стан. На мобільному (ряд карток) — просто проявлення.
  */
@@ -19,7 +19,8 @@ export function useServicesReveal(sectionRef: RefObject<HTMLElement | null>) {
     const heading = q('[data-services="heading"]');
     const cards = q<HTMLElement>('[data-services="card"]');
     const roach = q('[data-services="roach"]');
-    const all = [...heading, ...cards, ...roach];
+    const cta = q('[data-services="cta"]');
+    const all = [...heading, ...cards, ...roach, ...cta];
     let shown = false;
     let raf = 0;
     let tl: gsap.core.Timeline | null = null;
@@ -28,7 +29,7 @@ export function useServicesReveal(sectionRef: RefObject<HTMLElement | null>) {
       const mobile = window.matchMedia("(max-width: 767px)").matches;
       tl?.kill();
       if (reduced) {
-        gsap.set(all, { opacity: 1, x: 0, y: 0, rotation: 0 });
+        gsap.set(all, { opacity: 1 });
         return;
       }
       tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -49,6 +50,7 @@ export function useServicesReveal(sectionRef: RefObject<HTMLElement | null>) {
           0.15,
         );
       }
+      tl.fromTo(cta, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, mobile ? 0.5 : 0.7);
       tl.fromTo(
         roach,
         { opacity: 0, scale: 0.2, rotation: -40 },

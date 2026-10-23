@@ -48,6 +48,12 @@ export const services = {
     },
   ] satisfies Service[],
   roachLabel: "Roach at the wheel",
+  // Тарган за кермом — фраза на наведенні
+  roachMessage: "So, shall we go?",
+  // Кнопка під картками — відкриває вікно зв'язку з уже обраною послугою (обрана картка)
+  cta: "Get in touch",
+  // Підказка для скрінрідера: картку можна обрати
+  choose: (title: string) => `Choose: ${title}`,
 
   uk: {
     heading: "Послуги",
@@ -61,5 +67,8 @@ export const services = {
       { title: "Супровід", text: "Регулярні зустрічі, домашні завдання, підтримка в русі.", price: "150–300$", per: "/ міс." },
     ] satisfies Service[],
     roachLabel: "Тарган за кермом",
+    roachMessage: "Ну що, погнали?",
+    cta: "Зв’язатися",
+    choose: (title: string) => `Обрати: ${title}`,
   },
 };

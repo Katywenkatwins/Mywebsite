@@ -4,15 +4,19 @@
  * Секція Services. Figma: «Look & Feel 14» (node 12364:282), 1920×1080, тло --color-night — орієнтовний макет:
  * у ньому 3 картки, у нас 5, тож картки розкладені віялом (центральна рівно, крайні — з нахилом і нижче).
  * Картка — як у Molecula: кремовий аркуш у рожеву лінійку, заголовок DM Mono, ціна — рожеві контури Coolvetica з нахилом.
- * Наведення: картка виходить наперед, вирівнюється й трохи піднімається.
+ * Клік по картці обирає її: картка піднімається над іншими, вирівнюється й підсвічується жовтою рамкою;
+ * кнопка під віялом відкриває вікно зв'язку з уже обраною послугою (openContact(title)).
+ * Наведення: картка лише трохи піднімається. Тарган за кермом — фраза на наведенні (RoachNote).
  * Поява — коли секція повністю в екрані (services.motion.ts). На мобільному — ряд карток, що гортається вбік.
  */
 
-import { useRef, type CSSProperties } from "react";
-import Image from "next/image";
+import { useRef, useState, type CSSProperties } from "react";
 import { services, type Service } from "@/content/services";
 import { servicesHeading, priceGlyphs } from "./lettering";
 import { useServicesReveal } from "./services.motion";
+import { BlotButton } from "@/components/ui/BlotButton";
+import { openContact } from "@/components/ui/ContactDialog";
+import { RoachNote } from "@/components/ui/RoachNote";
 import roachWheel from "@/assets/services/roach-wheel.png";
 
 const u = (n: number) => `calc(${n} * var(--u))`;
@@ -28,6 +32,8 @@ const fan = (i: number, n: number) => {
 const PRICE_MAX = 170;
 // Тарган за кермом у Figma: блок 251×251 на (808, 788)
 const ROACH = { x: 808, y: 788, w: 251.116, h: 251.018 };
+// Кнопка — між віялом і тарганом, по центру сцени (низ центральної картки ≈ 648)
+const CTA_Y = 712;
 
 function Price({ card }: { card: Service }) {
   const g = priceGlyphs[card.price];
@@ -91,6 +97,7 @@ export function Services() {
   const sectionRef = useRef<HTMLElement>(null);
   useServicesReveal(sectionRef);
   const n = services.cards.length;
+  const [active, setActive] = useState<number | null>(null);
 
   return (
     <section
@@ -120,15 +127,17 @@ export function Services() {
           </svg>
         </div>
 
-        <ul className="max-md:mt-[24px] max-md:flex max-md:snap-x max-md:snap-mandatory max-md:gap-[16px] max-md:overflow-x-auto max-md:px-[16px] max-md:pb-[16px]">
+        <ul aria-label={services.heading} className="max-md:mt-[24px] max-md:flex max-md:snap-x max-md:snap-mandatory max-md:gap-[16px] max-md:overflow-x-auto max-md:px-[16px] max-md:pb-[16px]">
           {services.cards.map((card, i) => {
             const p = fan(i, n);
+            const on = active === i;
             return (
               <li
                 key={card.title}
                 data-services="card"
                 data-dx={960 - p.cx}
-                className="group absolute opacity-0 hover:z-10 max-md:relative max-md:top-auto! max-md:left-auto! max-md:shrink-0 max-md:snap-center"
+                data-active={on}
+                className="group absolute opacity-0 hover:z-10 data-[active=true]:z-20! max-md:relative max-md:py-[12px] max-md:top-auto! max-md:left-auto! max-md:shrink-0 max-md:snap-center"
                 style={
                   {
                     left: u(p.cx - CARD.w / 2),
@@ -140,23 +149,50 @@ export function Services() {
                   } as CSSProperties
                 }
               >
-                {/* нахил віяла; на наведенні картка вирівнюється й піднімається */}
-                <div className="size-full rotate-(--r) transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-30 group-hover:rotate-0 group-hover:scale-[1.04] max-md:rotate-0">
+                {/* нахил віяла; на наведенні картка трохи піднімається, обрана — вирівнюється, виходить наперед і світиться */}
+                <div className="size-full rotate-(--r) rounded-[calc(20*var(--u))] transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-16 group-data-[active=true]:-translate-y-40 group-data-[active=true]:rotate-0 group-data-[active=true]:scale-[1.06] group-data-[active=true]:shadow-[0_0_0_calc(5*var(--u))_var(--color-lemon),0_0_calc(40*var(--u))_calc(6*var(--u))_color-mix(in_srgb,var(--color-lemon)_45%,transparent)] max-md:rotate-0 max-md:group-data-[active=true]:translate-y-0 max-md:group-data-[active=true]:scale-100">
                   <Card card={card} />
                 </div>
+                {/* уся картка — кнопка вибору */}
+                <button
+                  type="button"
+                  aria-pressed={on}
+                  aria-label={services.choose(card.title)}
+                  onClick={() => setActive(on ? null : i)}
+                  className="absolute inset-0 cursor-pointer rounded-[calc(20*var(--u))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lemon"
+                />
               </li>
             );
           })}
         </ul>
 
-        {/* тарган за кермом — під віялом */}
-        <Image
-          data-services="roach"
-          src={roachWheel}
-          alt={services.roachLabel}
-          sizes="15vw"
-          className="pointer-events-none absolute opacity-0 max-md:hidden"
+        {/* кнопка під віялом: відкриває вікно зв'язку з обраною послугою */}
+        <div
+          data-services="cta"
+          className="absolute z-30 -translate-x-1/2 opacity-0 max-md:static max-md:mt-[8px] max-md:flex max-md:translate-x-0 max-md:justify-center"
+          style={{ left: u(960), top: u(CTA_Y) }}
+        >
+          <BlotButton
+            variant="filled"
+            aria-haspopup="dialog"
+            onClick={() => openContact(active === null ? undefined : services.cards[active].title)}
+            className="px-18 py-12 text-u-14 uppercase tracking-[calc(-0.28*var(--u))] max-md:px-[14px] max-md:py-[10px] max-md:text-[12px]"
+          >
+            {services.cta}
+            {active !== null && <span className="sr-only">: {services.cards[active].title}</span>}
+          </BlotButton>
+        </div>
+
+        {/* тарган за кермом — під кнопкою, фраза на наведенні */}
+        <RoachNote
+          image={roachWheel}
+          label={services.roachLabel}
+          message={services.roachMessage}
+          revealAttr={{ "data-services": "roach" }}
+          className="max-md:hidden"
           style={{ left: u(ROACH.x), top: u(ROACH.y), width: u(ROACH.w), height: u(ROACH.h) }}
+          noteClassName="w-200 max-md:hidden"
+          noteStyle={{ left: u(ROACH.x + ROACH.w + 12), top: u(ROACH.y + 70) }}
         />
       </div>
       <noscript>
