@@ -6,7 +6,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { portfolio } from "@/content/portfolio";
 import { covers } from "@/components/sections/portfolio/covers";
 import { site } from "@/content/site";
@@ -27,6 +27,8 @@ export default async function CasePage({ params }: Props) {
   const { slug } = await params;
   const item = portfolio.cases.find((c) => c.slug === slug);
   if (!item) notFound();
+  // поки кейс живе на Behance — стара адреса веде туди
+  if (item.link) redirect(item.link);
 
   return (
     <main

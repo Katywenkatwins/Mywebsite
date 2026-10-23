@@ -4,7 +4,8 @@
  * Секція Portfolio (кейси). Figma: «Look & Feel 13» (node 12364:229), 1920×1080, тло --color-night.
  * Посередині — галерея кейсів FlexCarousel (WebGL, ogl): обкладинки з назвою кейсу під ними.
  * Сцена прилипає, лише коли секція повністю в екрані; тоді ж з'являється галерея, і скрол гортає кейси (portfolio.motion.ts).
- * Клік по обкладинці відкриває кейс — під ним з'являється кнопка «Open project» на сторінку кейса /portfolio/<slug>.
+ * Клік по обкладинці відкриває кейс — під ним з'являється кнопка «Open project»: поки на Behance (content/portfolio.ts → link),
+ * без посилання — на сторінку кейса /portfolio/<slug>.
  * Унизу праворуч — тарганка з намистом (фраза на наведенні).
  */
 
@@ -15,7 +16,7 @@ import { portfolio } from "@/content/portfolio";
 import { RoachNote } from "@/components/ui/RoachNote";
 import { BlotButton } from "@/components/ui/BlotButton";
 import type { FlexCarouselApi } from "@/components/effects/FlexCarousel";
-import { covers } from "./covers";
+import { caseLink, covers } from "./covers";
 import { sectionScreens, usePortfolioScroll } from "./portfolio.motion";
 import roachBeads from "@/assets/portfolio/roach-beads.png";
 
@@ -54,7 +55,7 @@ export function Portfolio() {
       <ul className="sr-only">
         {portfolio.cases.map((c) => (
           <li key={c.slug}>
-            <a href={`/portfolio/${c.slug}`}>{c.title}</a>
+            <a {...caseLink(c)}>{c.title}</a>
           </li>
         ))}
       </ul>
@@ -65,7 +66,7 @@ export function Portfolio() {
             <ul className="flex size-full items-center justify-center gap-24 px-120">
               {portfolio.cases.map((c) => (
                 <li key={c.slug} className="w-360">
-                  <a href={`/portfolio/${c.slug}`} className="block text-center">
+                  <a {...caseLink(c)} className="block text-center">
                     <Image src={covers[c.image]} alt={portfolio.coverAlt(c.title)} sizes="20vw" className="h-auto w-full" />
                     <span className="mt-12 block text-u-15">{c.title}</span>
                   </a>
@@ -96,7 +97,7 @@ export function Portfolio() {
         >
           <BlotButton
             variant="filled"
-            href={`/portfolio/${(openedCase ?? portfolio.cases[0]).slug}`}
+            {...caseLink(openedCase ?? portfolio.cases[0])}
             tabIndex={openedCase ? undefined : -1}
             className="px-18 py-12 text-u-14 uppercase tracking-[calc(-0.28*var(--u))] max-md:px-[14px] max-md:py-[10px] max-md:text-[12px]"
           >
